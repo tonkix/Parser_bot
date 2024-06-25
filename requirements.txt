@@ -6,5 +6,7 @@ aiogram~=3.8.0
 python-dotenv~=1.0.1
 asyncio~=3.4.3
 SQLAlchemy~=2.0.31
-beautifulsoup4~=4.12.3
 aiosqlite
+beautifulsoup4~=4.12.3
+selenium
+APScheduler~=3.10.4

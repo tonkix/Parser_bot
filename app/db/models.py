@@ -12,11 +12,34 @@ class Base(AsyncAttrs, DeclarativeBase):
     pass
 
 
+class User(Base):
+    __tablename__ = 'users'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    tg_id = mapped_column(BigInteger)
+    firstname: Mapped[str] = mapped_column(String(50))
+    lastname: Mapped[str] = mapped_column(String(50))
+    subscribed: Mapped[bool]
+    role: Mapped[int]
+
+
 class Product(Base):
     __tablename__ = 'products'
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    product_id: Mapped[int]
+    product_code: Mapped[int]
     name: Mapped[str] = mapped_column(String(25))
+
+
+class Link(Base):
+    __tablename__ = 'links'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    url: Mapped[str] = mapped_column(String(500))
+    price: Mapped[int]
+    name: Mapped[str] = mapped_column(String(250))
+    product_id: Mapped[int] = mapped_column(ForeignKey('products.id'))
 
 
 async def async_main():
