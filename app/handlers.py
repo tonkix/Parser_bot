@@ -57,6 +57,7 @@ def tryDefaultSheetName(wb_data, name):
 
 # inputFile - файл для парсинга
 # return - Excel файл с результатами парсинга
+# TODO дописать чтобы из файла брало id товара
 def Work_With_File(data):
     # data = openpyxl.load_workbook(inputFile)
     default_sheet_name = "Ссылки"

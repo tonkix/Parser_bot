@@ -161,12 +161,12 @@ def parsing(list_url, ws):
                     name = ""
 
             except Exception as err:
+                price = ""
+                name = ""
                 print(str(list_url.index(s) + 1) + " of " + str(len(list_url))
                       + f"Unexpected {err=}, {type(err)=}")
                 logging.error(f"{s} - {str(list_url.index(s) + 1)} of {str(len(list_url))} "
                               f"##error - Unexpected {err=}, {type(err)=}")
-                price = ""
-                name = ""
                 continue
             print(str(list_url.index(s) + 1) + " of " + str(len(list_url)))
             ws.append({1: s, 2: name, 3: price})
