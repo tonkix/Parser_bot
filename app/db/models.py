@@ -29,7 +29,8 @@ class Product(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     product_id: Mapped[int]
     product_code: Mapped[int]
-    name: Mapped[str] = mapped_column(String(25))
+    name: Mapped[str] = mapped_column(String(250))
+    url: Mapped[str] = mapped_column(String(500))
 
 
 class Link(Base):
