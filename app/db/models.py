@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Optional
 from sqlalchemy import BigInteger, String, ForeignKey
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
@@ -27,10 +28,13 @@ class Product(Base):
     __tablename__ = 'products'
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    product_id: Mapped[int]
-    product_code: Mapped[int]
+    product_tt_id: Mapped[int]
+    product_tt_code: Mapped[int]
     name: Mapped[str] = mapped_column(String(250))
     url: Mapped[str] = mapped_column(String(500))
+    purchase_price: Mapped[int]
+    retail_price: Mapped[int]
+    update_date: Mapped[datetime]
 
 
 class Link(Base):
@@ -40,7 +44,17 @@ class Link(Base):
     url: Mapped[str] = mapped_column(String(500))
     price: Mapped[int]
     name: Mapped[str] = mapped_column(String(250))
+    product_id: Mapped[int] = mapped_column(ForeignKey('products.product_tt_id'))
+
+
+class Change(Base):
+    __tablename__ = 'changes'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
     product_id: Mapped[int] = mapped_column(ForeignKey('products.id'))
+    update_date: Mapped[datetime]
+    purchase_price: Mapped[int]
+    retail_price: Mapped[int]
 
 
 async def async_main():

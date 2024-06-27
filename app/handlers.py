@@ -58,24 +58,37 @@ def tryDefaultSheetName(wb_data, name):
 # inputFile - файл для парсинга
 # return - Excel файл с результатами парсинга
 # TODO дописать чтобы из файла брало id товара
-def Work_With_File(data):
+async def Work_With_File(data):
     # data = openpyxl.load_workbook(inputFile)
     default_sheet_name = "Ссылки"
     data = tryDefaultSheetName(wb_data=data, name=default_sheet_name)
 
     list_url = list()
+    temp_list_url = list()
+    id_url_dict = {}
     maxCheckRow = data.max_row + 1  # поиск ссылок в строках
     maxCheckColumn = 20  # поиск ссылок в колонках
-    for i in range(0, maxCheckRow):
-        for j in range(0, maxCheckColumn):
-            cell_obj = data.cell(row=i + 1, column=j + 1)
-            if "http" in str(cell_obj.value) and "." in str(cell_obj.value):
-                list_url.append(cell_obj.value)
+    for col in range(0, maxCheckColumn):
+        for row in range(0, maxCheckRow):
+            cell_url = data.cell(row=row + 1, column=col + 1).value
+            product_id = data.cell(row=row + 1, column=1).value
+            if "http" in str(cell_url) and "." in str(cell_url):
+                list_url.append(cell_url)
+                id_url_dict[product_id] = cell_url
 
     wb = Workbook()
     ws = wb.active
     ws.title = "Output data"
-    ws = parsing(list_url, ws)
+    name_price_dict = await parsing(list_url, ws)
+    sheet_name = 'dictionary'
+    wb.create_sheet(sheet_name)
+    ws = wb[sheet_name]
+    for key, value in id_url_dict.items():
+        ws.append({1: key, 2: value, 3: name_price_dict[value][0], 4: name_price_dict[value][1]})
+        await rq.add_link(product_id=key,
+                        url=value,
+                        name=name_price_dict[value][0],
+                        price=name_price_dict[value][1])
     return wb
 
 
@@ -87,6 +100,23 @@ async def cmd_start(message: Message):
                       subscribed=0,
                       role=1)
     await message.answer("Hello!")
+
+
+@router.message(Command("backup"))
+async def cmd_backup(message: Message):
+    logging.info('Запрос backup_db')
+    user = await rq.get_user_by_tg(message.from_user.id)
+    if user.role == 99:
+        await message.reply_document(
+            document=FSInputFile(
+                path='db.sqlite3',
+                filename='backup_db.sqlite3',
+            ),
+        )
+        logging.info('Запрос backup_db - пользователь принят')
+    else:
+        logging.error('Запрос backup_db - не прошла проверка пользователя')
+
 
 
 @router.message(F.content_type == ContentType.DOCUMENT)
@@ -108,7 +138,7 @@ async def get_doc(message: Message, bot: Bot):
     input_file = openpyxl.load_workbook(input_file)
     start = time.perf_counter()
     await message.answer('Файл обрабатывается...')
-    wb = Work_With_File(input_file)
+    wb = await Work_With_File(input_file)
     print(f"Выполнение заняло {time.perf_counter() - start:0.4f} секунд")
     output_directory = r'output_data/'
     if not os.path.exists(output_directory):

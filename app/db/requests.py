@@ -53,6 +53,21 @@ async def unsubscribe(tg_id):
         await session.commit()
 
 
+async def add_link(url, price, name, product_id):
+    async with async_session() as session:
+        links = await session.scalars(select(Link).where(Link.url == url))
+        for link in links:
+            if product_id == link.product_id:
+                return
+
+        session.add(Link(
+                url=url,
+                price=price,
+                name=name,
+                product_id=product_id))
+        await session.commit()
+
+
 async def get_subscribed_users():
     async with async_session() as session:
         return await session.scalars(select(User).where(User.subscribed == 1))

@@ -12,9 +12,10 @@ def priceToINT(price):
 
 
 # class, itemprop, id
-def parsing(list_url, ws):
+async def parsing(list_url, ws):
     logging.info('Parsing started')
     list_url = list(set(list_url))
+    output_dict = {}
     for s in list_url:
         if s is not None:
             try:
@@ -169,5 +170,7 @@ def parsing(list_url, ws):
                               f"##error - Unexpected {err=}, {type(err)=}")
                 continue
             print(str(list_url.index(s) + 1) + " of " + str(len(list_url)))
+            logging.info(str(list_url.index(s) + 1) + " of " + str(len(list_url)))
+            output_dict[s] = [name, price]
             ws.append({1: s, 2: name, 3: price})
-    return ws
+    return output_dict
