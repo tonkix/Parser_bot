@@ -55,6 +55,12 @@ def tryDefaultSheetName(wb_data, name):
     return wb_data[sheet]
 
 
+def find_elem_by_url(url, parsing_result):
+    for e in parsing_result:
+        if url == e[0]:
+            return e
+
+
 # inputFile - файл для парсинга
 # return - Excel файл с результатами парсинга
 # TODO дописать чтобы из файла брало id товара
@@ -64,8 +70,7 @@ async def Work_With_File(data):
     data = tryDefaultSheetName(wb_data=data, name=default_sheet_name)
 
     list_url = list()
-    temp_list_url = list()
-    id_url_dict = {}
+    id_url_list = list()
     maxCheckRow = data.max_row + 1  # поиск ссылок в строках
     maxCheckColumn = 20  # поиск ссылок в колонках
     for col in range(0, maxCheckColumn):
@@ -74,21 +79,44 @@ async def Work_With_File(data):
             product_id = data.cell(row=row + 1, column=1).value
             if "http" in str(cell_url) and "." in str(cell_url):
                 list_url.append(cell_url)
-                id_url_dict[product_id] = cell_url
+                id_url_list.append([product_id, cell_url])
 
     wb = Workbook()
     ws = wb.active
     ws.title = "Output data"
-    name_price_dict = await parsing(list_url, ws)
+    uniq_url = list(set(list_url))
+    parsing_result = await parsing(uniq_url, ws)
     sheet_name = 'dictionary'
     wb.create_sheet(sheet_name)
     ws = wb[sheet_name]
-    for key, value in id_url_dict.items():
-        ws.append({1: key, 2: value, 3: name_price_dict[value][0], 4: name_price_dict[value][1]})
+    for k in id_url_list:
+        try:
+            data = find_elem_by_url(k[1], parsing_result)
+            print(str(k[0]) + "/" + str(k[1]))
+            ws.append({1: k[0],
+                       2: k[1],
+                       3: data[1],
+                       4: data[2]})
+
+            await rq.add_link(product_id=k[0],
+                              url=k[1],
+                              name=data[1],
+                              price=data[2])
+        except Exception as err:
+            mes = f"Unexpected {err=}, {type(err)=}"
+            print(mes)
+            logging.error(mes)
+
+    '''for key in id_url_dict:
+        ws.append({1: key,
+                   2: id_url_dict[key],
+                   3: name_price_dict[id_url_dict[key]][0],
+                   4: name_price_dict[id_url_dict[key]][1]})
+        print(str(key) + "/" + id_url_dict[key])
         await rq.add_link(product_id=key,
-                          url=value,
-                          name=name_price_dict[value][0],
-                          price=name_price_dict[value][1])
+                          url=id_url_dict[key],
+                          name=name_price_dict[id_url_dict[key]][0],
+                          price=name_price_dict[id_url_dict[key]][1])'''
     return wb
 
 
@@ -118,8 +146,44 @@ async def cmd_backup(message: Message):
         logging.error('Запрос backup_db - не прошла проверка пользователя')
 
 
+async def add_tt_products(data):
+    default_sheet_name = "товары"
+    data = tryDefaultSheetName(wb_data=data, name=default_sheet_name)
+
+    product_list = list()
+    maxCheckRow = data.max_row + 1  # поиск ссылок в строках
+    for row in range(0, maxCheckRow):
+        product_tt_id = data.cell(row=row + 1, column=1).value
+        name = ''
+        url = data.cell(row=row + 1, column=2).value
+        purchase_price = data.cell(row=row + 1, column=3).value
+        retail_price = data.cell(row=row + 1, column=4).value
+        product_tt_code = data.cell(row=row + 1, column=6).value
+        product_list.append([product_tt_id, product_tt_code, name, url, purchase_price, retail_price])
+        await rq.add_tt_product(product_tt_id=product_tt_id,
+                                product_tt_code=product_tt_code,
+                                name=name,
+                                url=url,
+                                purchase_price=purchase_price,
+                                retail_price=retail_price)
+
+
 @router.message(F.content_type == ContentType.DOCUMENT)
 async def get_doc(message: Message, bot: Bot):
+    if message.document.file_name == 'товары ТТ.xlsx':
+        file_id = message.document.file_id
+        input_directory = r'input_data/'
+        if not os.path.exists(input_directory):
+            os.mkdir(input_directory)
+        input_name = "input.xlsm"
+        input_file = input_directory + input_name
+        await Bot.download(bot, file_id, input_file, 120)
+        input_file = openpyxl.load_workbook(input_file)
+        start = time.perf_counter()
+        await message.answer('Файл обрабатывается...')
+        await add_tt_products(input_file)
+        print(f"Выполнение заняло {time.perf_counter() - start:0.4f} секунд")
+        return
     await rq.set_user(tg_id=message.from_user.id,
                       firstname=message.from_user.first_name,
                       lastname=message.from_user.last_name,
@@ -157,14 +221,12 @@ async def get_doc(message: Message, bot: Bot):
 @router.message(F.text.contains('товар'))
 async def get_links(message: Message):
     links = list(await rq.get_links_by_tt_id(message.text.split(' ')[1]))
-    await message.answer(f"Найдено {len(links)} ссылок")
-    text = ''
+    await message.answer(text=f"Найдено {len(links)} ссылок",
+                         disable_notification=True)
     for link in links:
-        text = text.join(link.url)
-
-    await message.answer(text=text,
-                         disable_notification=True,
-                         disable_web_page_preview=False)
+        await message.answer(text=link.url,
+                             disable_notification=True,
+                             disable_web_page_preview=True)
 
 
 @router.message()

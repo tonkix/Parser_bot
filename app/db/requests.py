@@ -3,6 +3,8 @@ import random
 from app.db.models import async_session
 from app.db.models import User, Product, Link
 from sqlalchemy import select
+import time
+from datetime import datetime
 
 
 async def set_user(tg_id, firstname, lastname, subscribed, role=1):
@@ -56,18 +58,20 @@ async def unsubscribe(tg_id):
 
 async def add_link(url, price, name, product_id):
     async with async_session() as session:
-        links = await session.scalars(select(Link).where(Link.url == url))
-        for link in links:
-            if product_id == link.product_id:
-                return
-
-        session.add(Link(
+        links = list(await session.scalars(select(Link).where(Link.url == url)))
+        if len(links) == 0:
+            session.add(Link(
                 url=url,
                 price=price,
                 name=name,
                 product_id=product_id))
-        logging.info(f"Добавлена запись в 'links' - {product_id} {url} {price}")
-        await session.commit()
+            logging.info(f"Добавлена запись в 'links' - {product_id} {url} {price}")
+            await session.commit()
+        else:
+            for link in links:
+                if product_id == link.product_id:
+                    logging.info(f"Такая запись уже существует 'links' - {product_id} {url} {price}")
+                    return
 
 
 async def get_links_by_tt_id(product_tt_id):
@@ -78,3 +82,25 @@ async def get_links_by_tt_id(product_tt_id):
 async def get_subscribed_users():
     async with async_session() as session:
         return await session.scalars(select(User).where(User.subscribed == 1))
+
+
+async def add_tt_product(product_tt_id, product_tt_code, name, url, purchase_price, retail_price):
+    async with async_session() as session:
+        links = list(await session.scalars(select(Link).where(Link.url == url)))
+        if not links:
+            session.add(Product(
+                product_tt_id=product_tt_id,
+                product_tt_code=product_tt_code,
+                name=name,
+                url=url,
+                purchase_price=purchase_price,
+                retail_price=retail_price,
+                update_date=datetime.now().date()))
+            logging.info(f"Добавлена запись в 'products' - {product_tt_id} --- {url} --- "
+                         f"Закуп {purchase_price} / Розница {retail_price}")
+            await session.commit()
+        else:
+            logging.info(f"Такая запись уже существует 'products' - {product_tt_id} {url}")
+            return
+
+

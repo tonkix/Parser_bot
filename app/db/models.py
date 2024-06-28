@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional
-from sqlalchemy import BigInteger, String, ForeignKey
+from sqlalchemy import BigInteger, String, ForeignKey, Integer, TIMESTAMP
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.ext.asyncio import AsyncAttrs, async_sessionmaker, create_async_engine
 
@@ -28,13 +28,13 @@ class Product(Base):
     __tablename__ = 'products'
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    product_tt_id: Mapped[int]
-    product_tt_code: Mapped[int]
-    name: Mapped[str] = mapped_column(String(250))
-    url: Mapped[str] = mapped_column(String(500))
-    purchase_price: Mapped[int]
-    retail_price: Mapped[int]
-    update_date: Mapped[datetime]
+    product_tt_id: Mapped[int] = mapped_column(Integer, nullable=True)
+    product_tt_code: Mapped[int] = mapped_column(Integer, nullable=True)
+    name: Mapped[str] = mapped_column(String(250), nullable=True)
+    url: Mapped[str] = mapped_column(String(500), nullable=True)
+    purchase_price: Mapped[int] = mapped_column(Integer, nullable=True)
+    retail_price: Mapped[int] = mapped_column(Integer, nullable=True)
+    update_date: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.utcnow)
 
 
 class Link(Base):
