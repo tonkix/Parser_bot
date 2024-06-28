@@ -86,9 +86,9 @@ async def Work_With_File(data):
     for key, value in id_url_dict.items():
         ws.append({1: key, 2: value, 3: name_price_dict[value][0], 4: name_price_dict[value][1]})
         await rq.add_link(product_id=key,
-                        url=value,
-                        name=name_price_dict[value][0],
-                        price=name_price_dict[value][1])
+                          url=value,
+                          name=name_price_dict[value][0],
+                          price=name_price_dict[value][1])
     return wb
 
 
@@ -116,7 +116,6 @@ async def cmd_backup(message: Message):
         logging.info('Запрос backup_db - пользователь принят')
     else:
         logging.error('Запрос backup_db - не прошла проверка пользователя')
-
 
 
 @router.message(F.content_type == ContentType.DOCUMENT)
@@ -153,6 +152,19 @@ async def get_doc(message: Message, bot: Bot):
             filename=output_name,
         ),
     )
+
+
+@router.message(F.text.contains('товар'))
+async def get_links(message: Message):
+    links = list(await rq.get_links_by_tt_id(message.text.split(' ')[1]))
+    await message.answer(f"Найдено {len(links)} ссылок")
+    text = ''
+    for link in links:
+        text = text.join(link.url)
+
+    await message.answer(text=text,
+                         disable_notification=True,
+                         disable_web_page_preview=False)
 
 
 @router.message()

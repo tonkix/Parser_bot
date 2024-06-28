@@ -1,3 +1,4 @@
+import logging
 import random
 from app.db.models import async_session
 from app.db.models import User, Product, Link
@@ -65,7 +66,13 @@ async def add_link(url, price, name, product_id):
                 price=price,
                 name=name,
                 product_id=product_id))
+        logging.info(f"Добавлена запись в 'links' - {product_id} {url} {price}")
         await session.commit()
+
+
+async def get_links_by_tt_id(product_tt_id):
+    async with async_session() as session:
+        return await session.scalars(select(Link).where(Link.product_id == product_tt_id))
 
 
 async def get_subscribed_users():
