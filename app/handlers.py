@@ -13,7 +13,6 @@ import time
 from datetime import datetime
 from openpyxl import Workbook
 
-import app.db.models
 import app.db.requests as rq
 from app.parser_1 import parsing
 

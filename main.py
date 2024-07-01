@@ -1,17 +1,11 @@
-import time
 import os
-from datetime import datetime
 import asyncio
 import logging
-from aiogram import F, Bot, Dispatcher, types
-from aiogram.filters.command import Command
+from aiogram import Bot, Dispatcher
 from dotenv import load_dotenv
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from datetime import datetime, timedelta
 
-from openpyxl import Workbook
-
-from app.parser_1 import parsing
 from app.db.models import async_main
 from app.handlers import router
 from app.scheduler import send_message_cron_at_start
