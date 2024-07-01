@@ -55,7 +55,9 @@ def tryDefaultSheetName(wb_data, name):
     return wb_data[sheet]
 
 
-def find_elem_by_url(url, parsing_result):
+# TODO выдает код первому вхождению ссылки
+# TODO Исправить!!!! Двоит товары в БД
+async def find_elem_by_url(url, parsing_result):
     for e in parsing_result:
         if url == e[0]:
             return e
@@ -90,7 +92,7 @@ async def Work_With_File(data: Workbook):
     ws = wb[sheet_name]
     for k in id_url_list:
         try:
-            data = find_elem_by_url(k[1], parsing_result)
+            data = await find_elem_by_url(k[1], parsing_result)
             # print(str(k[0]) + "/" + str(k[1]))
             ws.append({1: k[0],
                        2: k[1],

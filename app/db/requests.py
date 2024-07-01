@@ -64,7 +64,6 @@ async def add_link(url, price, name, product_id):
                 name=name,
                 product_id=product_id))
             logging.info(f"Добавлена запись в 'links' - {product_id} {url} {price}")
-            await session.commit()
         else:
             for link in links:
                 if product_id == link.product_id:
@@ -77,7 +76,7 @@ async def add_link(url, price, name, product_id):
                         name=name,
                         product_id=product_id))
                     logging.info(f"Добавлена запись в 'links' - {product_id} {url} {price}")
-                    await session.commit()
+        await session.commit()
 
 
 async def get_product_by_tt_id(product_tt_id):
