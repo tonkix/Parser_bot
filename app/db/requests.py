@@ -74,6 +74,16 @@ async def add_link(url, price, name, product_id):
                     return
 
 
+async def get_product_by_tt_id(product_tt_id):
+    async with async_session() as session:
+        return await session.scalar(select(Product).where(Product.product_tt_id == product_tt_id))
+
+
+async def get_product_by_tt_code(product_tt_code):
+    async with async_session() as session:
+        return await session.scalar(select(Product).where(Product.product_tt_code == product_tt_code))
+
+
 async def get_links_by_tt_id(product_tt_id):
     async with async_session() as session:
         return await session.scalars(select(Link).where(Link.product_id == product_tt_id))
@@ -95,7 +105,7 @@ async def add_tt_product(product_tt_id, product_tt_code, name, url, purchase_pri
                 url=url,
                 purchase_price=purchase_price,
                 retail_price=retail_price,
-                update_date=datetime.now().date()))
+                update_date=datetime.now()))
             logging.info(f"Добавлена запись в 'products' - {product_tt_id} --- {url} --- "
                          f"Закуп {purchase_price} / Розница {retail_price}")
             await session.commit()

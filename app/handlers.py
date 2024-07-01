@@ -220,7 +220,16 @@ async def get_doc(message: Message, bot: Bot):
 
 @router.message(F.text.contains('товар'))
 async def get_links(message: Message):
+    product = await rq.get_product_by_tt_id(message.text.split(' ')[1])
     links = list(await rq.get_links_by_tt_id(message.text.split(' ')[1]))
+    await message.answer(text=f"Товар: \nid: {product.product_tt_id}"
+                              f"\nКод товара: {product.product_tt_code}"
+                              f"\nНаименование: {product.name}"
+                              f"\nСсылка: {product.url}"
+                              f"\nЗакуп: {product.purchase_price}"
+                              f"\nРозница: {product.retail_price}"
+                              f"\nДата внесения: {product.update_date}",
+                         disable_notification=True)
     await message.answer(text=f"Найдено {len(links)} ссылок",
                          disable_notification=True)
     for link in links:
