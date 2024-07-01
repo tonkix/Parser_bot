@@ -1,11 +1,9 @@
 from datetime import datetime
-from typing import Optional
 from sqlalchemy import BigInteger, String, ForeignKey, Integer, TIMESTAMP
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.ext.asyncio import AsyncAttrs, async_sessionmaker, create_async_engine
 
 engine = create_async_engine(url='sqlite+aiosqlite:///db.sqlite3')
-
 async_session = async_sessionmaker(engine)
 
 
@@ -34,7 +32,7 @@ class Product(Base):
     url: Mapped[str] = mapped_column(String(500), nullable=True)
     purchase_price: Mapped[int] = mapped_column(Integer, nullable=True)
     retail_price: Mapped[int] = mapped_column(Integer, nullable=True)
-    update_date: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.utcnow)
+    update_date: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime)
 
 
 class Link(Base):

@@ -1,13 +1,11 @@
 import logging
-import random
 from app.db.models import async_session
 from app.db.models import User, Product, Link
 from sqlalchemy import select
-import time
 from datetime import datetime
 
 
-async def set_user(tg_id, firstname, lastname, subscribed, role=1):
+async def set_user(tg_id: int, firstname, lastname, subscribed, role=1):
     async with async_session() as session:
         user = await session.scalar(select(User).where(User.tg_id == tg_id))
 
@@ -24,32 +22,32 @@ async def check_password(password):
     return password == '41802967'
 
 
-async def get_user_by_tg(tg_id):
+async def get_user_by_tg(tg_id: int):
     async with async_session() as session:
         return await session.scalar(select(User).where(User.tg_id == tg_id))
 
 
-async def get_user_by_id(id):
+async def get_user_by_id(user_id):
     async with async_session() as session:
-        return await session.scalar(select(User).where(User.id == id))
+        return await session.scalar(select(User).where(User.id == user_id))
 
 
-async def subscribe(tg_id):
+async def subscribe(tg_id: int):
     async with async_session() as session:
         result = await session.execute(select(User)
                                        .order_by(User.id)
-                                       .where(User.tg_id==tg_id)
+                                       .where(User.tg_id == tg_id)
                                        .limit(1))
         user = result.scalar()
         user.subscribed = True
         await session.commit()
 
 
-async def unsubscribe(tg_id):
+async def unsubscribe(tg_id: int):
     async with async_session() as session:
         result = await session.execute(select(User)
                                        .order_by(User.id)
-                                       .where(User.tg_id==tg_id)
+                                       .where(User.tg_id == tg_id)
                                        .limit(1))
         user = result.scalar()
         user.subscribed = False
@@ -90,7 +88,7 @@ async def get_product_by_tt_id(product_tt_id):
 
 async def get_product_by_tt_code(product_tt_code):
     async with async_session() as session:
-        product =  await session.scalar(select(Product).where(Product.product_tt_code == product_tt_code))
+        product = await session.scalar(select(Product).where(Product.product_tt_code == product_tt_code))
         return product
 
 
@@ -128,5 +126,3 @@ async def add_tt_product(product_tt_id, product_tt_code, name, url, purchase_pri
         else:
             logging.info(f"Такая запись уже существует 'products' - {product_tt_id} {url}")
             return
-
-
