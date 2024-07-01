@@ -132,7 +132,7 @@ async def cmd_subscribe(message: Message):
 
 
 @router.message(Command("unsubscribe"))
-async def cmd_subscribe(message: Message):
+async def cmd_unsubscribe(message: Message):
     await rq.set_user(tg_id=message.from_user.id,
                       firstname=message.from_user.first_name,
                       lastname=message.from_user.last_name,
