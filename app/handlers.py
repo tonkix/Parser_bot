@@ -208,10 +208,11 @@ async def get_doc(message: Message, bot: Bot):
     )
 
 
-@router.message(F.text.contains('товар'))
+# @router.message(F.text.contains('товар'))
+@router.message()
 async def get_links(message: Message):
-    product = await rq.get_product_by_tt_id(message.text.split(' ')[1])
-    links = list(await rq.get_links_by_tt_id(message.text.split(' ')[1]))
+    product = await rq.get_product_by_tt_id(message.text.split(' ')[0])
+    links = list(await rq.get_links_by_tt_id(message.text.split(' ')[0]))
     if product is not None:
         await message.answer(text="Найдено по id товара",
                              disable_notification=True,
@@ -235,8 +236,8 @@ async def get_links(message: Message):
         await message.answer(text="Найдено по коду товара",
                              disable_notification=True,
                              disable_web_page_preview=True)
-        product = await rq.get_product_by_tt_code(message.text.split(' ')[1])
-        links = list(await rq.get_links_by_tt_id(message.text.split(' ')[1]))
+        product = await rq.get_product_by_tt_code(message.text.split(' ')[0])
+        links = list(await rq.get_links_by_tt_code(message.text.split(' ')[0]))
         if product is not None:
             await message.answer(text=f"Товар: \nid: {product.product_tt_id}"
                                       f"\nКод товара: {product.product_tt_code}"

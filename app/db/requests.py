@@ -91,6 +91,12 @@ async def get_links_by_tt_id(product_tt_id):
         return await session.scalars(select(Link).where(Link.product_id == product_tt_id))
 
 
+async def get_links_by_tt_code(product_tt_code):
+    async with async_session() as session:
+        product = await get_product_by_tt_code(product_tt_code)
+        return await session.scalars(select(Link).where(Link.product_id == product.product_tt_id))
+
+
 async def get_subscribed_users():
     async with async_session() as session:
         return await session.scalars(select(User).where(User.subscribed == 1))
