@@ -76,12 +76,14 @@ async def add_link(url, price, name, product_id):
 
 async def get_product_by_tt_id(product_tt_id):
     async with async_session() as session:
-        return await session.scalar(select(Product).where(Product.product_tt_id == product_tt_id))
+        product = await session.scalar(select(Product).where(Product.product_tt_id == product_tt_id))
+        return product
 
 
 async def get_product_by_tt_code(product_tt_code):
     async with async_session() as session:
-        return await session.scalar(select(Product).where(Product.product_tt_code == product_tt_code))
+        product =  await session.scalar(select(Product).where(Product.product_tt_code == product_tt_code))
+        return product
 
 
 async def get_links_by_tt_id(product_tt_id):

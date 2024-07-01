@@ -13,6 +13,7 @@ import time
 from datetime import datetime
 from openpyxl import Workbook
 
+import app.db.models
 import app.db.requests as rq
 from app.parser_1 import parsing
 
@@ -64,8 +65,7 @@ def find_elem_by_url(url, parsing_result):
 # inputFile - файл для парсинга
 # return - Excel файл с результатами парсинга
 # TODO дописать чтобы из файла брало id товара
-async def Work_With_File(data):
-    # data = openpyxl.load_workbook(inputFile)
+async def Work_With_File(data: Workbook):
     default_sheet_name = "Ссылки"
     data = tryDefaultSheetName(wb_data=data, name=default_sheet_name)
 
@@ -92,7 +92,7 @@ async def Work_With_File(data):
     for k in id_url_list:
         try:
             data = find_elem_by_url(k[1], parsing_result)
-            print(str(k[0]) + "/" + str(k[1]))
+            # print(str(k[0]) + "/" + str(k[1]))
             ws.append({1: k[0],
                        2: k[1],
                        3: data[1],
@@ -107,16 +107,6 @@ async def Work_With_File(data):
             print(mes)
             logging.error(mes)
 
-    '''for key in id_url_dict:
-        ws.append({1: key,
-                   2: id_url_dict[key],
-                   3: name_price_dict[id_url_dict[key]][0],
-                   4: name_price_dict[id_url_dict[key]][1]})
-        print(str(key) + "/" + id_url_dict[key])
-        await rq.add_link(product_id=key,
-                          url=id_url_dict[key],
-                          name=name_price_dict[id_url_dict[key]][0],
-                          price=name_price_dict[id_url_dict[key]][1])'''
     return wb
 
 
@@ -146,7 +136,7 @@ async def cmd_backup(message: Message):
         logging.error('Запрос backup_db - не прошла проверка пользователя')
 
 
-async def add_tt_products(data):
+async def add_tt_products(data: Workbook):
     default_sheet_name = "товары"
     data = tryDefaultSheetName(wb_data=data, name=default_sheet_name)
 
@@ -222,20 +212,51 @@ async def get_doc(message: Message, bot: Bot):
 async def get_links(message: Message):
     product = await rq.get_product_by_tt_id(message.text.split(' ')[1])
     links = list(await rq.get_links_by_tt_id(message.text.split(' ')[1]))
-    await message.answer(text=f"Товар: \nid: {product.product_tt_id}"
-                              f"\nКод товара: {product.product_tt_code}"
-                              f"\nНаименование: {product.name}"
-                              f"\nСсылка: {product.url}"
-                              f"\nЗакуп: {product.purchase_price}"
-                              f"\nРозница: {product.retail_price}"
-                              f"\nДата внесения: {product.update_date}",
-                         disable_notification=True)
-    await message.answer(text=f"Найдено {len(links)} ссылок",
-                         disable_notification=True)
-    for link in links:
-        await message.answer(text=link.url,
+    if product is not None:
+        await message.answer(text="Найдено по id товара",
                              disable_notification=True,
                              disable_web_page_preview=True)
+        await message.answer(text=f"Товар: \nid: {product.product_tt_id}"
+                                  f"\nКод товара: {product.product_tt_code}"
+                                  f"\nНаименование: {product.name}"
+                                  f"\nСсылка: {product.url}"
+                                  f"\nЗакуп: {product.purchase_price}"
+                                  f"\nРозница: {product.retail_price}"
+                                  f"\nДата внесения: {product.update_date}",
+                             disable_notification=True,
+                             disable_web_page_preview=True)
+        await message.answer(text=f"Найдено {len(links)} ссылок",
+                             disable_notification=True)
+        for link in links:
+            await message.answer(text=link.url,
+                                 disable_notification=True,
+                                 disable_web_page_preview=True)
+    else:
+        await message.answer(text="Найдено по коду товара",
+                             disable_notification=True,
+                             disable_web_page_preview=True)
+        product = await rq.get_product_by_tt_code(message.text.split(' ')[1])
+        links = list(await rq.get_links_by_tt_id(message.text.split(' ')[1]))
+        if product is not None:
+            await message.answer(text=f"Товар: \nid: {product.product_tt_id}"
+                                      f"\nКод товара: {product.product_tt_code}"
+                                      f"\nНаименование: {product.name}"
+                                      f"\nСсылка: {product.url}"
+                                      f"\nЗакуп: {product.purchase_price}"
+                                      f"\nРозница: {product.retail_price}"
+                                      f"\nДата внесения: {product.update_date}",
+                                 disable_notification=True,
+                                 disable_web_page_preview=True)
+            await message.answer(text=f"Найдено {len(links)} ссылок",
+                                 disable_notification=True)
+            for link in links:
+                await message.answer(text=link.url,
+                                     disable_notification=True,
+                                     disable_web_page_preview=True)
+        else:
+            await message.answer(text="Товар не найден",
+                                 disable_notification=True,
+                                 disable_web_page_preview=True)
 
 
 @router.message()
