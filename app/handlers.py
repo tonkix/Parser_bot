@@ -120,6 +120,28 @@ async def cmd_start(message: Message):
     await message.answer("Hello!")
 
 
+@router.message(Command("subscribe"))
+async def cmd_subscribe(message: Message):
+    await rq.set_user(tg_id=message.from_user.id,
+                      firstname=message.from_user.first_name,
+                      lastname=message.from_user.last_name,
+                      subscribed=1,
+                      role=1)
+    await rq.subscribe(tg_id=message.from_user.id)
+    await message.answer("Вы подписались на рассылку")
+
+
+@router.message(Command("unsubscribe"))
+async def cmd_subscribe(message: Message):
+    await rq.set_user(tg_id=message.from_user.id,
+                      firstname=message.from_user.first_name,
+                      lastname=message.from_user.last_name,
+                      subscribed=0,
+                      role=1)
+    await rq.unsubscribe(tg_id=message.from_user.id)
+    await message.answer("Вы отписались от рассылки")
+
+
 @router.message(Command("backup"))
 async def cmd_backup(message: Message):
     logging.info('Запрос backup_db')
