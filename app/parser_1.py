@@ -1,3 +1,4 @@
+import json
 import logging
 from bs4 import BeautifulSoup
 import requests
@@ -142,8 +143,13 @@ async def parsing(uniq_url_list, ws):
                 elif "ozon.ru" in url:
                     from selenium import webdriver
                     from selenium.webdriver import ChromeOptions
+                    json_url = url.split('product')[1]
+                    json_url = 'https://www.ozon.ru/api/entrypoint-api.bx/page/json/v2?url=' + json_url
+                    data = requests.get(json_url).content.decode('utf-8')
+                    json_data = json.loads(data)
+                    print(json_data)
 
-                    options = ChromeOptions()
+                    '''options = ChromeOptions()
                     options.add_argument("--headless=new")
                     browser = webdriver.Chrome(options=options)
                     browser.get(url)
@@ -153,7 +159,9 @@ async def parsing(uniq_url_list, ws):
                     price = bs.find('span', class_='zl0_27 l9y_27').text
                     price = priceToINT(price)
                     name = (bs.find('h1', class_='mm3_27 tsHeadline550Medium').text
-                            .strip())
+                            .strip())'''
+                    price = ""
+                    name = ""
 
                 else:
                     logging.error(f"{url} - not found method")
