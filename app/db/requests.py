@@ -54,7 +54,6 @@ async def unsubscribe(tg_id: int):
         await session.commit()
 
 
-#TODO где то тут двоит ссылки
 async def add_link(url, price, name, product_id):
     async with async_session() as session:
         links = await session.scalars(select(Link).where(Link.url == url))
