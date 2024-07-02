@@ -252,22 +252,27 @@ async def get_links(message: Message):
                                   f"\n\nТекущая РЦ: {data['price']}",
                              disable_notification=True,
                              disable_web_page_preview=True)
-        await message.answer(text=f"Найдено {len(links)} ссылок (ка)",
-                             disable_notification=True)
-        for link in links:
-            data = await parsing_one(link.url)
-            await message.answer(text=f"Ссылка: {link.url}\n\n"
-                                      f"Наименование: {data['name']}\n\n"
-                                      f"Цена: {data['price']}\n",
-                                 disable_notification=True,
-                                 disable_web_page_preview=True)
+        if len(links) != 0:
+            await message.answer(text=f"Найдено {len(links)}",
+                                 disable_notification=True)
+            for link in links:
+                data = await parsing_one(link.url)
+                await message.answer(text=f"Ссылка: {link.url}\n\n"
+                                          f"Наименование: {data['name']}\n\n"
+                                          f"Цена: {data['price']}\n",
+                                     disable_notification=True,
+                                     disable_web_page_preview=True)
+        else:
+            await message.answer(text=f"Ссылок не найдено",
+                                 disable_notification=True)
+
     else:
-        await message.answer(text="Найдено по коду товара",
-                             disable_notification=True,
-                             disable_web_page_preview=True)
         product = await rq.get_product_by_tt_code(message.text.split(' ')[0])
         links = list(await rq.get_links_by_tt_code(message.text.split(' ')[0]))
         if product is not None:
+            await message.answer(text="Найдено по коду товара",
+                                 disable_notification=True,
+                                 disable_web_page_preview=True)
             data = await parsing_one(product.url)
             await message.answer(text=f"Товар: \nid: {product.product_tt_id}"
                                       f"\nКод товара: {product.product_tt_code}"
@@ -280,15 +285,19 @@ async def get_links(message: Message):
                                       f"\n\nТекущая РЦ: {data['price']}",
                                  disable_notification=True,
                                  disable_web_page_preview=True)
-            await message.answer(text=f"Найдено {len(links)} ссылок (ка)",
-                                 disable_notification=True)
-            for link in links:
-                data = await parsing_one(link.url)
-                await message.answer(text=f"Ссылка: {link.url}\n\n"
-                                          f"Наименование: {data['name']}\n\n"
-                                          f"Цена: {data['price']}\n",
-                                     disable_notification=True,
-                                     disable_web_page_preview=True)
+            if len(links) != 0:
+                await message.answer(text=f"Найдено {len(links)}",
+                                     disable_notification=True)
+                for link in links:
+                    data = await parsing_one(link.url)
+                    await message.answer(text=f"Ссылка: {link.url}\n\n"
+                                              f"Наименование: {data['name']}\n\n"
+                                              f"Цена: {data['price']}\n",
+                                         disable_notification=True,
+                                         disable_web_page_preview=True)
+            else:
+                await message.answer(text=f"Ссылок не найдено",
+                                     disable_notification=True)
         else:
             await message.answer(text="Товар не найден",
                                  disable_notification=True,
