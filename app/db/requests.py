@@ -53,29 +53,21 @@ async def unsubscribe(tg_id: int):
         user.subscribed = False
         await session.commit()
 
+
 #TODO где то тут двоит ссылки
 async def add_link(url, price, name, product_id):
     async with async_session() as session:
-        links = list(await session.scalars(select(Link).where(Link.url == url)))
-        if len(links) == 0:
-            session.add(Link(
-                url=url,
-                price=price,
-                name=name,
-                product_id=product_id))
-            logging.info(f"Добавлена запись в 'links' - {product_id} {url} {price}")
-        else:
-            for link in links:
-                if product_id == link.product_id:
-                    logging.info(f"Такая запись уже существует 'links' - {product_id} {url} {price}")
-                    continue
-                else:
-                    session.add(Link(
-                        url=url,
-                        price=price,
-                        name=name,
-                        product_id=product_id))
-                    logging.info(f"Добавлена запись в 'links' - {product_id} {url} {price}")
+        links = await session.scalars(select(Link).where(Link.url == url))
+        for link in links:
+            if product_id == link.product_id:
+                logging.info(f"Такая запись уже существует 'links' - {product_id} {url} {price}")
+                return
+        session.add(Link(
+            url=url,
+            price=price,
+            name=name,
+            product_id=product_id))
+        logging.info(f"Добавлена запись в 'links' - {product_id} {url} {price}")
         await session.commit()
 
 

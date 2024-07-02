@@ -139,29 +139,17 @@ async def parsing(uniq_url_list, ws):
                     name = (bs.find('div', class_='h2').text
                             .strip())
 
-                # TODO не работает
-                elif "ozon.ru" in url:
-                    from selenium import webdriver
-                    from selenium.webdriver import ChromeOptions
-                    json_url = url.split('product')[1]
-                    json_url = 'https://www.ozon.ru/api/entrypoint-api.bx/page/json/v2?url=' + json_url
-                    data = requests.get(json_url).content.decode('utf-8')
-                    json_data = json.loads(data)
-                    print(json_data)
+                elif "ferrum.group" in url:
+                    try:
+                        price = bs.find('h2', class_='price discounted').text
+                    except Exception as err:
+                        price = bs.find('h2', class_='price').text
+                        mes = f"Unexpected {err=}, {type(err)=}"
+                        logging.error(mes)
 
-                    '''options = ChromeOptions()
-                    options.add_argument("--headless=new")
-                    browser = webdriver.Chrome(options=options)
-                    browser.get(url)
-                    generated_html = browser.page_source
-                    browser.quit()
-                    bs = BeautifulSoup(generated_html, 'html.parser')
-                    price = bs.find('span', class_='zl0_27 l9y_27').text
                     price = priceToINT(price)
-                    name = (bs.find('h1', class_='mm3_27 tsHeadline550Medium').text
-                            .strip())'''
-                    price = ""
-                    name = ""
+                    name = (bs.find('h1').text
+                            .strip())
 
                 else:
                     logging.error(f"{url} - not found method")
