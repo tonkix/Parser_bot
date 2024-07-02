@@ -231,46 +231,24 @@ async def get_doc(message: Message, bot: Bot):
     )
 
 
+async def find_products(text):
+    product = await rq.get_product_by_tt_id(text.split(' ')[0])
+    if product is None:
+        product = await rq.get_product_by_tt_code(text.split(' ')[0])
+        if product is None:
+            product = await rq.get_products_by_link(text)
+            if product is None:
+                product = await rq.get_products_by_name(text)
+    return product
+
+
 # @router.message(F.text.contains('товар'))
 @router.message()
 async def get_links(message: Message):
-    product = await rq.get_product_by_tt_id(message.text.split(' ')[0])
-    links = list(await rq.get_links_by_tt_id(message.text.split(' ')[0]))
-    if product is not None:
-        await message.answer(text="Найдено по id товара",
-                             disable_notification=True,
-                             disable_web_page_preview=True)
-        data = await parsing_one(product.url)
-        await message.answer(text=f"Товар: \nid: {product.product_tt_id}"
-                                  f"\nКод товара: {product.product_tt_code}"
-                                  f"\nНаименование: {product.name}"
-                                  f"\nСсылка: {product.url}"
-                                  f"\nЗакуп: {product.purchase_price}"
-                                  f"\nРозница: {product.retail_price}"
-                                  f"\nДата внесения: {product.update_date}"
-                                  f"\n\nТекущее наименование: {data['name']}"
-                                  f"\n\nТекущая РЦ: {data['price']}",
-                             disable_notification=True,
-                             disable_web_page_preview=True)
-        if len(links) != 0:
-            await message.answer(text=f"Найдено {len(links)}",
-                                 disable_notification=True)
-            for link in links:
-                data = await parsing_one(link.url)
-                await message.answer(text=f"Ссылка: {link.url}\n\n"
-                                          f"Наименование: {data['name']}\n\n"
-                                          f"Цена: {data['price']}\n",
-                                     disable_notification=True,
-                                     disable_web_page_preview=True)
-        else:
-            await message.answer(text=f"Ссылок не найдено",
-                                 disable_notification=True)
-
-    else:
-        product = await rq.get_product_by_tt_code(message.text.split(' ')[0])
-        links = list(await rq.get_links_by_tt_code(message.text.split(' ')[0]))
+    products = await find_products(message.text)
+    for product in products:
         if product is not None:
-            await message.answer(text="Найдено по коду товара",
+            await message.answer(text="Найден товар",
                                  disable_notification=True,
                                  disable_web_page_preview=True)
             data = await parsing_one(product.url)
@@ -285,6 +263,7 @@ async def get_links(message: Message):
                                       f"\n\nТекущая РЦ: {data['price']}",
                                  disable_notification=True,
                                  disable_web_page_preview=True)
+            links = list(await rq.get_links_by_tt_id(product.product_tt_id))
             if len(links) != 0:
                 await message.answer(text=f"Найдено {len(links)}",
                                      disable_notification=True)
@@ -298,6 +277,7 @@ async def get_links(message: Message):
             else:
                 await message.answer(text=f"Ссылок не найдено",
                                      disable_notification=True)
+
         else:
             await message.answer(text="Товар не найден",
                                  disable_notification=True,
