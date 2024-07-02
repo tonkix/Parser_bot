@@ -152,6 +152,20 @@ async def cmd_help(message: Message):
                          f"Можно отправить файл с ссылками и в ответ бот пришлет файл с результатами парсинга")
 
 
+# TODO сделать возможность очищать логи только ролям 99
+@router.message(Command("clear_log"))
+async def cmd_clear_log(message: Message):
+    user = await rq.get_user_by_tg(message.from_user.id)
+    if user.role == 99:
+        with open("logs.log", 'w') as file:
+            file.write('')
+        logging.info('Очистка логов')
+        await message.answer(f"Логи очищены")
+    else:
+        logging.error('Запрос на очистку логов - не прошла проверка пользователя')
+        await message.answer(f"У вас нет доступа для выполнения данной команды")
+
+
 @router.message(Command("backup"))
 async def cmd_backup(message: Message):
     logging.info('Запрос backup_db')
