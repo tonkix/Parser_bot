@@ -20,6 +20,10 @@ router = Router()
 load_dotenv()
 
 
+class ImportTT(StatesGroup):
+    file = State()
+
+
 def printSheets(sheets):
     list_of_sheets = list()
     for s in sheets:
@@ -140,6 +144,32 @@ async def cmd_unsubscribe(message: Message):
     await message.answer("Вы отписались от рассылки")
 
 
+
+@router.message(Command("import"))
+async def cmd_import(message: Message, state: FSMContext):
+    user = await rq.get_user_by_tg(message.from_user.id)
+    if user.role == 99:
+        await state.set_state(ImportTT.file)
+    else:
+        await message.answer(f"У вас нет доступа для выполнения данной команды")
+
+
+
+@router.message(ImportTT.file)
+async def get_import_file(message: Message, state: FSMContext,bot: Bot):
+    await message.answer(f"Зашел в обработку файла")
+    file_id = message.document.file_id
+    input_directory = r'import_data/'
+    if not os.path.exists(input_directory):
+        os.mkdir(input_directory)
+    input_name = "import.xlsx"
+    input_file = input_directory + input_name
+    await Bot.download(bot, file_id, input_file, 120)
+    await state.clear()
+
+
+
+
 @router.message(Command("help"))
 async def cmd_help(message: Message):
     await message.answer(f"Бот умеет"
@@ -252,12 +282,16 @@ async def get_doc(message: Message, bot: Bot):
 
 
 async def find_products(text):
+    logging.info("Поиск по ID")
     product = await rq.get_product_by_tt_id(text.split(' ')[0])
     if product is None:
+        logging.info("Поиск по коду")
         product = await rq.get_product_by_tt_code(text.split(' ')[0])
         if product is None:
+            logging.info("Поиск по ссылке")
             product = await rq.get_products_by_link(text)
             if product is None:
+                logging.info("Поиск по названию")
                 product = await rq.get_products_by_name(text)
     return product
 
@@ -265,8 +299,9 @@ async def find_products(text):
 # @router.message(F.text.contains('товар'))
 @router.message()
 async def get_links(message: Message):
-    products = await find_products(message.text)
+    products = list(await find_products(message.text))
     for product in products:
+        logging.info("Перебор")
         if product is not None:
             await message.answer(text="Найден товар",
                                  disable_notification=True,
