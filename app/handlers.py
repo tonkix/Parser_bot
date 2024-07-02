@@ -143,6 +143,15 @@ async def cmd_unsubscribe(message: Message):
     await message.answer("Вы отписались от рассылки")
 
 
+@router.message(Command("help"))
+async def cmd_help(message: Message):
+    await message.answer(f"Бот умеет"
+                         f"\n- Искать товары по id"
+                         f"\n- Искать товары по коду товара"
+                         f"\n- Искать товары по ссылке\n\n"
+                         f"Можно отправить файл с ссылками и в ответ бот пришлет файл с результатами парсинга")
+
+
 @router.message(Command("backup"))
 async def cmd_backup(message: Message):
     logging.info('Запрос backup_db')
