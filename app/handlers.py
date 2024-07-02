@@ -299,7 +299,7 @@ async def find_products(text):
 # @router.message(F.text.contains('товар'))
 @router.message()
 async def get_links(message: Message):
-    products = list(await find_products(message.text))
+    products = await find_products(message.text)
     for product in products:
         logging.info("Перебор")
         if product is not None:
@@ -338,12 +338,3 @@ async def get_links(message: Message):
                                  disable_notification=True,
                                  disable_web_page_preview=True)
 
-
-@router.message()
-async def any_reply(message: Message):
-    await rq.set_user(tg_id=message.from_user.id,
-                      firstname=message.from_user.first_name,
-                      lastname=message.from_user.last_name,
-                      subscribed=0,
-                      role=1)
-    await message.reply('У меня нет инструкции на такое сообщение')

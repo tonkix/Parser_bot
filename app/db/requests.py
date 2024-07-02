@@ -72,13 +72,13 @@ async def add_link(url, price, name, product_id):
 
 async def get_product_by_tt_id(product_tt_id):
     async with async_session() as session:
-        product = await session.scalar(select(Product).where(Product.product_tt_id == product_tt_id))
+        product = await session.scalars(select(Product).where(Product.product_tt_id == product_tt_id))
         return product
 
 
 async def get_product_by_tt_code(product_tt_code):
     async with async_session() as session:
-        product = await session.scalar(select(Product).where(Product.product_tt_code == product_tt_code))
+        product = await session.scalars(select(Product).where(Product.product_tt_code == product_tt_code))
         return product
 
 
@@ -132,3 +132,20 @@ async def add_tt_product(product_tt_id, product_tt_code, name, url, purchase_pri
         else:
             logging.info(f"Такая запись уже существует 'products' - {product_tt_id} {url}")
             return
+
+
+async def update_product(product_tt_id, product_tt_code, name, url, purchase_price, retail_price):
+    async with async_session() as session:
+        result = await session.execute(select(Product)
+                                       .where(Product.product_tt_id == product_tt_id)
+                                       .limit(1))
+        product = result.scalar()
+        product.product_tt_id = product_tt_id
+        product.product_tt_code = product_tt_code
+        product.name = name
+        product.url = url
+        product.purchase_price = purchase_price
+        product.retail_price = retail_price
+        product.update_date = datetime.now()
+        await session.commit()
+
