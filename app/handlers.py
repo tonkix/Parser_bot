@@ -14,7 +14,7 @@ from datetime import datetime
 from openpyxl import Workbook
 
 import app.db.requests as rq
-from app.parser_1 import parsing
+from app.parser_1 import parsing, parsing_one
 
 router = Router()
 load_dotenv()
@@ -240,19 +240,25 @@ async def get_links(message: Message):
         await message.answer(text="Найдено по id товара",
                              disable_notification=True,
                              disable_web_page_preview=True)
+        data = await parsing_one(product.url)
         await message.answer(text=f"Товар: \nid: {product.product_tt_id}"
                                   f"\nКод товара: {product.product_tt_code}"
                                   f"\nНаименование: {product.name}"
                                   f"\nСсылка: {product.url}"
                                   f"\nЗакуп: {product.purchase_price}"
                                   f"\nРозница: {product.retail_price}"
-                                  f"\nДата внесения: {product.update_date}",
+                                  f"\nДата внесения: {product.update_date}"
+                                  f"\n\nТекущее наименование: {data['name']}"
+                                  f"\n\nТекущая РЦ: {data['price']}",
                              disable_notification=True,
                              disable_web_page_preview=True)
-        await message.answer(text=f"Найдено {len(links)} ссылок",
+        await message.answer(text=f"Найдено {len(links)} ссылок (ка)",
                              disable_notification=True)
         for link in links:
-            await message.answer(text=link.url,
+            data = await parsing_one(link.url)
+            await message.answer(text=f"Ссылка: {link.url}\n\n"
+                                      f"Наименование: {data['name']}\n\n"
+                                      f"Цена: {data['price']}\n",
                                  disable_notification=True,
                                  disable_web_page_preview=True)
     else:
@@ -262,19 +268,25 @@ async def get_links(message: Message):
         product = await rq.get_product_by_tt_code(message.text.split(' ')[0])
         links = list(await rq.get_links_by_tt_code(message.text.split(' ')[0]))
         if product is not None:
+            data = await parsing_one(product.url)
             await message.answer(text=f"Товар: \nid: {product.product_tt_id}"
                                       f"\nКод товара: {product.product_tt_code}"
                                       f"\nНаименование: {product.name}"
                                       f"\nСсылка: {product.url}"
                                       f"\nЗакуп: {product.purchase_price}"
                                       f"\nРозница: {product.retail_price}"
-                                      f"\nДата внесения: {product.update_date}",
+                                      f"\nДата внесения: {product.update_date}"
+                                      f"\n\nТекущее наименование: {data['name']}"
+                                      f"\n\nТекущая РЦ: {data['price']}",
                                  disable_notification=True,
                                  disable_web_page_preview=True)
-            await message.answer(text=f"Найдено {len(links)} ссылок",
+            await message.answer(text=f"Найдено {len(links)} ссылок (ка)",
                                  disable_notification=True)
             for link in links:
-                await message.answer(text=link.url,
+                data = await parsing_one(link.url)
+                await message.answer(text=f"Ссылка: {link.url}\n\n"
+                                          f"Наименование: {data['name']}\n\n"
+                                          f"Цена: {data['price']}\n",
                                      disable_notification=True,
                                      disable_web_page_preview=True)
         else:
