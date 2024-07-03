@@ -179,9 +179,11 @@ async def update_product2(**kwargs):
                     setattr(product, key, value)
                     # print(key, value)
                     product.update_date = datetime.now()
-                else:
-                    await add_tt_product2(**kwargs)
-                    print('Добавлен товар')
+            logging.info('Товар обновлен')
+        else:
+            await add_tt_product2(**kwargs)
+            print('Добавлен товар')
+            logging.info('Добавлен товар')
 
         await session.commit()
         print(f"\n")
