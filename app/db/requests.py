@@ -72,14 +72,14 @@ async def add_link(url, price, name, product_id):
 
 async def get_product_by_tt_id(product_tt_id):
     async with async_session() as session:
-        product = await session.scalars(select(Product).where(Product.product_tt_id == product_tt_id))
-        return product
+        products = await session.scalars(select(Product).where(Product.product_tt_id == product_tt_id))
+        return products
 
 
 async def get_product_by_tt_code(product_tt_code):
     async with async_session() as session:
-        product = await session.scalars(select(Product).where(Product.product_tt_code == product_tt_code))
-        return product
+        products = await session.scalars(select(Product).where(Product.product_tt_code == product_tt_code))
+        return products
 
 
 async def get_products_by_link(url):
@@ -94,9 +94,9 @@ async def get_products_by_link(url):
 
 async def get_products_by_name(name):
     async with async_session() as session:
-        name = name.split()
+        name = name.split(' ')
         out_product = list()
-        products_tt = list(await session.scalars(select(Product).where(Product.name.lower().contains(name[0].lower()))))
+        products_tt = list(await session.scalars(select(Product).where(Product.name.contains(name[0]))))
         for p in products_tt:
             if (word.lower() in p.name.lower() for word in name):
                 out_product.append(p)

@@ -317,17 +317,17 @@ async def get_doc(message: Message, bot: Bot):
 
 async def find_products(text):
     logging.info("Поиск по ID")
-    product = await rq.get_product_by_tt_id(text.split(' ')[0])
-    if product is None:
+    products = await rq.get_product_by_tt_id(text.split(' ')[0])
+    if len(list(products)) == 0:
         logging.info("Поиск по коду")
-        product = await rq.get_product_by_tt_code(text.split(' ')[0])
-        if product is None:
+        products = await rq.get_product_by_tt_code(text.split(' ')[0])
+        if len(list(products)) == 0:
             logging.info("Поиск по ссылке")
-            product = await rq.get_products_by_link(text)
-            if product is None:
+            products = await rq.get_products_by_link(text)
+            if len(list(products)) == 0:
                 logging.info("Поиск по названию")
-                product = await rq.get_products_by_name(text)
-    return product
+                products = await rq.get_products_by_name(text)
+    return products
 
 
 # @router.message(F.text.contains('товар'))
