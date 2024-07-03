@@ -44,6 +44,11 @@ class Product(Base):
                 self.retail_price,
                 self.update_date]'''
 
+    def update(self, **kwargs):
+        for key, value in kwargs.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+
 
 class Link(Base):
     __tablename__ = 'links'

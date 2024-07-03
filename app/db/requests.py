@@ -134,18 +134,45 @@ async def add_tt_product(product_tt_id, product_tt_code, name, url, purchase_pri
             return
 
 
-async def update_product(product_tt_id, product_tt_code, name, url, purchase_price, retail_price):
+async def update_product(product_tt_id, product_tt_code, name, purchase_price, retail_price):
     async with async_session() as session:
         result = await session.execute(select(Product)
                                        .where(Product.product_tt_id == product_tt_id)
                                        .limit(1))
         product = result.scalar()
-        product.product_tt_id = product_tt_id
         product.product_tt_code = product_tt_code
         product.name = name
-        product.url = url
         product.purchase_price = purchase_price
         product.retail_price = retail_price
         product.update_date = datetime.now()
         await session.commit()
 
+
+async def update_product2(**kwargs):
+    async with async_session() as session:
+        product = await session.execute(select(Product)
+                                        .where(Product.product_tt_id == kwargs['product_tt_id'])
+                                        .limit(1))
+        product = product.scalar()
+        for key, value in kwargs.items():
+            if hasattr(product, key):
+                setattr(product, key, value)
+                # print(key, value)
+                product.update_date = datetime.now()
+        await session.commit()
+        print(f"\n")
+
+        '''if kwargs['product_tt_id'] is not None:
+            product.product_tt_id = kwargs['product_tt_id']
+        if kwargs['product_tt_code'] is not None:
+            product.product_tt_code = kwargs['product_tt_code']
+        if kwargs['name'] is not None:
+            product.name = kwargs['name']
+        if kwargs['url'] is not None:
+            product.url = kwargs['url']
+        if kwargs['purchase_price'] is not None:
+            product.purchase_price = kwargs['purchase_price']
+        if kwargs['retail_price'] is not None:
+            product.retail_price = kwargs['retail_price']
+        product.update_date = datetime.now()
+        await session.commit()'''

@@ -144,20 +144,42 @@ async def cmd_unsubscribe(message: Message):
     await message.answer("Вы отписались от рассылки")
 
 
-
 @router.message(Command("import"))
 async def cmd_import(message: Message, state: FSMContext):
     user = await rq.get_user_by_tg(message.from_user.id)
     if user.role == 99:
         await state.set_state(ImportTT.file)
+        await message.answer(f"Жду файл импорта")
     else:
         await message.answer(f"У вас нет доступа для выполнения данной команды")
 
 
+async def update_tt_products(data: Workbook):
+    data = data.active
+    products_list = list()
+    products_dict = dict()
+    maxCheckRow = data.max_row + 1  # поиск ссылок в строках
+    for row in range(1, maxCheckRow):
+        products_dict['product_tt_id'] = data.cell(row=row + 1, column=1).value
+        products_dict['product_tt_code'] = data.cell(row=row + 1, column=2).value
+        products_dict['name'] = data.cell(row=row + 1, column=3).value
+        products_dict['purchase_price'] = data.cell(row=row + 1, column=4).value
+        products_dict['retail_price'] = data.cell(row=row + 1, column=5).value
+        # print(products_dict)
+        # products_list.append([(k, v) for k, v in products_dict.items()])
+        # products_list.append(products_dict)
+        products_list.append([products_dict['product_tt_id'],
+                             products_dict['product_tt_code'],
+                             products_dict['name'],
+                             products_dict['purchase_price'],
+                             products_dict['retail_price']])
+
+    return products_list
+
 
 @router.message(ImportTT.file)
-async def get_import_file(message: Message, state: FSMContext,bot: Bot):
-    await message.answer(f"Зашел в обработку файла")
+async def get_import_file(message: Message, state: FSMContext, bot: Bot):
+    await message.answer(f"Начал работу с файлом")
     file_id = message.document.file_id
     input_directory = r'import_data/'
     if not os.path.exists(input_directory):
@@ -165,9 +187,18 @@ async def get_import_file(message: Message, state: FSMContext,bot: Bot):
     input_name = "import.xlsx"
     input_file = input_directory + input_name
     await Bot.download(bot, file_id, input_file, 120)
+    input_file = openpyxl.load_workbook(os.path.join(input_directory, input_name))
+    products = await update_tt_products(input_file)
+    for product in products:
+        # await rq.update_product(*product)
+        # print(product)
+        await rq.update_product2(product_tt_id=product[0],
+                                 product_tt_code=product[1],
+                                 name=product[2],
+                                 purchase_price=product[3],
+                                 retail_price=product[4])
+    await message.answer(f"Завершено")
     await state.clear()
-
-
 
 
 @router.message(Command("help"))
@@ -337,4 +368,3 @@ async def get_links(message: Message):
             await message.answer(text="Товар не найден",
                                  disable_notification=True,
                                  disable_web_page_preview=True)
-
