@@ -94,7 +94,12 @@ async def get_products_by_link(url):
 
 async def get_products_by_name(name):
     async with async_session() as session:
-        products_tt = list(await session.scalars(select(Product).where(Product.name == name)))
+        name = name.split()
+        out_product = list()
+        products_tt = list(await session.scalars(select(Product).where(Product.name.lower().contains(name[0].lower()))))
+        for p in products_tt:
+            if (word.lower() in p.name.lower() for word in name):
+                out_product.append(p)
         return products_tt
 
 
@@ -114,7 +119,52 @@ async def get_subscribed_users():
         return await session.scalars(select(User).where(User.subscribed == 1))
 
 
-async def add_tt_product(product_tt_id, product_tt_code, name, url, purchase_price, retail_price):
+async def add_tt_product2(**kwargs):
+    async with async_session() as session:
+        links = list(await session.scalars(select(Link).where(Link.url == kwargs['url'])))
+        if not links:
+            try:
+                # TODO задать параметры по умолчанию, чтобы добавлять неполный товар
+                session.add(Product(
+                    product_tt_id=kwargs['product_tt_id'],
+                    product_tt_code=kwargs['product_tt_code'],
+                    name=kwargs['name'],
+                    url=kwargs['url'],
+                    purchase_price=kwargs['purchase_price'],
+                    retail_price=kwargs['retail_price'],
+                    update_date=datetime.now()))
+                logging.info(f"Добавлена запись в 'products' - {kwargs['product_tt_id']} --- {kwargs['url']} ---"
+                             f"Закуп {kwargs['purchase_price']} / Розница {kwargs['retail_price']}")
+                await session.commit()
+            except Exception as err:
+                logging.error(f"Unexpected {err}")
+        else:
+            logging.info(f"Такая запись уже существует 'products' - {kwargs['product_tt_id']}")
+            return
+
+
+async def update_product2(**kwargs):
+    async with async_session() as session:
+        product = (await session.execute(select(Product)
+                                         .where(Product.product_tt_id == kwargs['product_tt_id'])
+                                         .limit(1))).scalar()
+        if product is not None:
+            for key, value in kwargs.items():
+                if hasattr(product, key):
+                    setattr(product, key, value)
+                    # print(key, value)
+                    product.update_date = datetime.now()
+            logging.info('Товар обновлен')
+            print('Товар обновлен')
+        else:
+            await add_tt_product2(**kwargs)
+            print('Добавлен товар')
+            logging.info('Добавлен товар из обновления')
+
+        await session.commit()
+
+
+'''async def add_tt_product(product_tt_id, product_tt_code, name, url, purchase_price, retail_price):
     async with async_session() as session:
         links = list(await session.scalars(select(Link).where(Link.url == url)))
         if not links:
@@ -131,29 +181,9 @@ async def add_tt_product(product_tt_id, product_tt_code, name, url, purchase_pri
             await session.commit()
         else:
             logging.info(f"Такая запись уже существует 'products' - {product_tt_id} {url}")
-            return
+            return'''
 
-
-async def add_tt_product2(**kwargs):
-    async with async_session() as session:
-        links = list(await session.scalars(select(Link).where(Link.url == kwargs['url'])))
-        if not links:
-            session.add(Product(
-                product_tt_id=kwargs['product_tt_id'],
-                product_tt_code=kwargs['product_tt_code'],
-                name=kwargs['name'],
-                purchase_price=kwargs['purchase_price'],
-                retail_price=kwargs['retail_price'],
-                update_date=datetime.now()))
-            logging.info(f"Добавлена запись в 'products' - {kwargs['product_tt_id']} --- "
-                         f"Закуп {kwargs['purchase_price']} / Розница {kwargs['retail_price']}")
-            await session.commit()
-        else:
-            logging.info(f"Такая запись уже существует 'products' - {kwargs['product_tt_id']}")
-            return
-
-
-async def update_product(product_tt_id, product_tt_code, name, purchase_price, retail_price):
+'''async def update_product(product_tt_id, product_tt_code, name, purchase_price, retail_price):
     async with async_session() as session:
         result = await session.execute(select(Product)
                                        .where(Product.product_tt_id == product_tt_id)
@@ -164,26 +194,4 @@ async def update_product(product_tt_id, product_tt_code, name, purchase_price, r
         product.purchase_price = purchase_price
         product.retail_price = retail_price
         product.update_date = datetime.now()
-        await session.commit()
-
-
-async def update_product2(**kwargs):
-    async with async_session() as session:
-        product = await session.execute(select(Product)
-                                        .where(Product.product_tt_id == kwargs['product_tt_id'])
-                                        .limit(1))
-        product = product.scalar()
-        if product is not None:
-            for key, value in kwargs.items():
-                if hasattr(product, key):
-                    setattr(product, key, value)
-                    # print(key, value)
-                    product.update_date = datetime.now()
-            logging.info('Товар обновлен')
-        else:
-            await add_tt_product2(**kwargs)
-            print('Добавлен товар')
-            logging.info('Добавлен товар')
-
-        await session.commit()
-        print(f"\n")
+        await session.commit()'''

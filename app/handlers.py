@@ -165,15 +165,16 @@ async def update_tt_products(data: Workbook):
         products_dict['name'] = data.cell(row=row + 1, column=3).value
         products_dict['purchase_price'] = data.cell(row=row + 1, column=4).value
         products_dict['retail_price'] = data.cell(row=row + 1, column=5).value
-        # products_dict['url'] = data.cell(row=row + 1, column=6).value
+        products_dict['url'] = data.cell(row=row + 1, column=6).value
         # print(products_dict)
         # products_list.append([(k, v) for k, v in products_dict.items()])
         # products_list.append(products_dict)
         products_list.append([products_dict['product_tt_id'],
-                             products_dict['product_tt_code'],
-                             products_dict['name'],
-                             products_dict['purchase_price'],
-                             products_dict['retail_price']])
+                              products_dict['product_tt_code'],
+                              products_dict['name'],
+                              products_dict['purchase_price'],
+                              products_dict['retail_price'],
+                              products_dict['url']])
 
     return products_list
 
@@ -197,7 +198,8 @@ async def get_import_file(message: Message, state: FSMContext, bot: Bot):
                                  product_tt_code=product[1],
                                  name=product[2],
                                  purchase_price=product[3],
-                                 retail_price=product[4])
+                                 retail_price=product[4],
+                                 url=product[5])
     await message.answer(f"Завершено")
     await state.clear()
 
@@ -255,12 +257,12 @@ async def add_tt_products(data: Workbook):
         retail_price = data.cell(row=row + 1, column=4).value
         product_tt_code = data.cell(row=row + 1, column=6).value
         product_list.append([product_tt_id, product_tt_code, name, url, purchase_price, retail_price])
-        await rq.add_tt_product(product_tt_id=product_tt_id,
-                                product_tt_code=product_tt_code,
-                                name=name,
-                                url=url,
-                                purchase_price=purchase_price,
-                                retail_price=retail_price)
+        await rq.add_tt_product2(product_tt_id=product_tt_id,
+                                 product_tt_code=product_tt_code,
+                                 name=name,
+                                 url=url,
+                                 purchase_price=purchase_price,
+                                 retail_price=retail_price)
 
 
 @router.message(F.content_type == ContentType.DOCUMENT)
