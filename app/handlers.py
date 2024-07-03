@@ -165,6 +165,7 @@ async def update_tt_products(data: Workbook):
         products_dict['name'] = data.cell(row=row + 1, column=3).value
         products_dict['purchase_price'] = data.cell(row=row + 1, column=4).value
         products_dict['retail_price'] = data.cell(row=row + 1, column=5).value
+        # products_dict['url'] = data.cell(row=row + 1, column=6).value
         # print(products_dict)
         # products_list.append([(k, v) for k, v in products_dict.items()])
         # products_list.append(products_dict)

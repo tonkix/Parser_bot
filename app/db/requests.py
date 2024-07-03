@@ -134,6 +134,25 @@ async def add_tt_product(product_tt_id, product_tt_code, name, url, purchase_pri
             return
 
 
+async def add_tt_product2(**kwargs):
+    async with async_session() as session:
+        links = list(await session.scalars(select(Link).where(Link.url == kwargs['url'])))
+        if not links:
+            session.add(Product(
+                product_tt_id=kwargs['product_tt_id'],
+                product_tt_code=kwargs['product_tt_code'],
+                name=kwargs['name'],
+                purchase_price=kwargs['purchase_price'],
+                retail_price=kwargs['retail_price'],
+                update_date=datetime.now()))
+            logging.info(f"Добавлена запись в 'products' - {kwargs['product_tt_id']} --- "
+                         f"Закуп {kwargs['purchase_price']} / Розница {kwargs['retail_price']}")
+            await session.commit()
+        else:
+            logging.info(f"Такая запись уже существует 'products' - {kwargs['product_tt_id']}")
+            return
+
+
 async def update_product(product_tt_id, product_tt_code, name, purchase_price, retail_price):
     async with async_session() as session:
         result = await session.execute(select(Product)
@@ -154,25 +173,15 @@ async def update_product2(**kwargs):
                                         .where(Product.product_tt_id == kwargs['product_tt_id'])
                                         .limit(1))
         product = product.scalar()
-        for key, value in kwargs.items():
-            if hasattr(product, key):
-                setattr(product, key, value)
-                # print(key, value)
-                product.update_date = datetime.now()
+        if product is not None:
+            for key, value in kwargs.items():
+                if hasattr(product, key):
+                    setattr(product, key, value)
+                    # print(key, value)
+                    product.update_date = datetime.now()
+                else:
+                    await add_tt_product2(**kwargs)
+                    print('Добавлен товар')
+
         await session.commit()
         print(f"\n")
-
-        '''if kwargs['product_tt_id'] is not None:
-            product.product_tt_id = kwargs['product_tt_id']
-        if kwargs['product_tt_code'] is not None:
-            product.product_tt_code = kwargs['product_tt_code']
-        if kwargs['name'] is not None:
-            product.name = kwargs['name']
-        if kwargs['url'] is not None:
-            product.url = kwargs['url']
-        if kwargs['purchase_price'] is not None:
-            product.purchase_price = kwargs['purchase_price']
-        if kwargs['retail_price'] is not None:
-            product.retail_price = kwargs['retail_price']
-        product.update_date = datetime.now()
-        await session.commit()'''
