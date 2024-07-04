@@ -160,8 +160,8 @@ cython_debug/
 #.idea/
 
 # Excel
-.xlsx
-.xlsm
-.xls
+*.xlsx
+*.xlsm
+*.xls
 
 
