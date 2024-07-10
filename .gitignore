@@ -163,8 +163,6 @@ cython_debug/
 *.xlsx
 *.xlsm
 *.xls
-import_data/
-output_data/
-input_data/
-
-
+/import_data/
+/output_data/
+/input_data/
