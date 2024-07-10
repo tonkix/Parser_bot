@@ -266,20 +266,6 @@ async def add_tt_products(data: Workbook):
 
 @router.message(F.content_type == ContentType.DOCUMENT)
 async def get_doc(message: Message, bot: Bot):
-    if message.document.file_name == 'товары ТТ.xlsx':
-        file_id = message.document.file_id
-        input_directory = r'input_data/'
-        if not os.path.exists(input_directory):
-            os.mkdir(input_directory)
-        input_name = "input.xlsm"
-        input_file = input_directory + input_name
-        await Bot.download(bot, file_id, input_file, 120)
-        input_file = openpyxl.load_workbook(input_file)
-        start = time.perf_counter()
-        await message.answer('Файл обрабатывается...')
-        await add_tt_products(input_file)
-        print(f"Выполнение заняло {time.perf_counter() - start:0.4f} секунд")
-        return
     await rq.set_user(tg_id=message.from_user.id,
                       firstname=message.from_user.first_name,
                       lastname=message.from_user.last_name,
