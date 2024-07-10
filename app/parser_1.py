@@ -94,7 +94,7 @@ async def parsing(uniq_url_list, ws):
                             .strip())
 
                 elif "tuningprosto" in url:
-                    price = bs.find('span', id='bx_117848907_10953_price').text
+                    price = bs.find('div', class_='product-detail__price font-heavy').find('div').find('span').text
                     price = priceToINT(price)
                     name = (bs.find('h1', class_='product-detail__title font-bold').text
                             .strip())
@@ -158,7 +158,7 @@ async def parsing(uniq_url_list, ws):
 
             except Exception as err:
                 mes = (str(uniq_url_list.index(url) + 1) + " of " + str(len(uniq_url_list))
-                       + f"Unexpected {err=}, {type(err)=}")
+                       + f" {url} Unexpected {err=}, {type(err)=}")
                 print(mes)
                 logging.error(mes)
                 continue
