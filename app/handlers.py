@@ -144,6 +144,44 @@ async def cmd_unsubscribe(message: Message):
     await message.answer("Вы отписались от рассылки")
 
 
+@router.message(Command("clear_log"))
+async def cmd_clear_log(message: Message):
+    user = await rq.get_user_by_tg(message.from_user.id)
+    if user.role == 99:  # 99 - администратор
+        with open("logs.log", 'w') as file:
+            file.write('')
+        logging.info('Очистка логов')
+        await message.answer(f"Логи очищены")
+    else:
+        logging.error('Запрос на очистку логов - не прошла проверка пользователя')
+        await message.answer(f"У вас нет доступа для выполнения данной команды")
+
+
+@router.message(Command("backup"))
+async def cmd_backup(message: Message):
+    logging.info('Запрос backup_db')
+    user = await rq.get_user_by_tg(message.from_user.id)
+    if user.role == 99:
+        await message.reply_document(
+            document=FSInputFile(
+                path='db.sqlite3',
+                filename='backup_db.sqlite3',
+            ),
+        )
+        logging.info('Запрос backup_db - пользователь принят')
+    else:
+        logging.error('Запрос backup_db - не прошла проверка пользователя')
+
+
+@router.message(Command("help"))
+async def cmd_help(message: Message):
+    await message.answer(f"Бот умеет"
+                         f"\n- Искать товары по id"
+                         f"\n- Искать товары по коду товара"
+                         f"\n- Искать товары по ссылке\n\n"
+                         f"Можно отправить файл с ссылками и в ответ бот пришлет файл с результатами парсинга")
+
+
 @router.message(Command("import"))
 async def cmd_import(message: Message, state: FSMContext):
     user = await rq.get_user_by_tg(message.from_user.id)
@@ -202,45 +240,6 @@ async def get_import_file(message: Message, state: FSMContext, bot: Bot):
                                  url=product[5])
     await message.answer(f"Завершено")
     await state.clear()
-
-
-@router.message(Command("help"))
-async def cmd_help(message: Message):
-    await message.answer(f"Бот умеет"
-                         f"\n- Искать товары по id"
-                         f"\n- Искать товары по коду товара"
-                         f"\n- Искать товары по ссылке\n\n"
-                         f"Можно отправить файл с ссылками и в ответ бот пришлет файл с результатами парсинга")
-
-
-# TODO сделать возможность очищать логи только ролям 99
-@router.message(Command("clear_log"))
-async def cmd_clear_log(message: Message):
-    user = await rq.get_user_by_tg(message.from_user.id)
-    if user.role == 99:
-        with open("logs.log", 'w') as file:
-            file.write('')
-        logging.info('Очистка логов')
-        await message.answer(f"Логи очищены")
-    else:
-        logging.error('Запрос на очистку логов - не прошла проверка пользователя')
-        await message.answer(f"У вас нет доступа для выполнения данной команды")
-
-
-@router.message(Command("backup"))
-async def cmd_backup(message: Message):
-    logging.info('Запрос backup_db')
-    user = await rq.get_user_by_tg(message.from_user.id)
-    if user.role == 99:
-        await message.reply_document(
-            document=FSInputFile(
-                path='db.sqlite3',
-                filename='backup_db.sqlite3',
-            ),
-        )
-        logging.info('Запрос backup_db - пользователь принят')
-    else:
-        logging.error('Запрос backup_db - не прошла проверка пользователя')
 
 
 async def add_tt_products(data: Workbook):
