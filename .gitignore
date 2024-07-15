@@ -162,3 +162,11 @@ cython_debug/
 /input_data
 /output_data
 /import_data
+input_data/
+output_data/
+import_data/
+
+*.xlsm
+*.xlsx
+*.xls
+
