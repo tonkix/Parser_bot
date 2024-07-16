@@ -139,6 +139,43 @@ async def parsing(uniq_url_list, ws):
                     name = (bs.find('div', class_='h2').text
                             .strip())
 
+                elif "autodemic.ru" in url:
+                    price = bs.find('div', class_='js-price-hide product-price').find('span').text
+                    price = priceToINT(price)
+                    name = (bs.find('h1', class_='product-title').text
+                            .strip())
+
+                elif "original-detal.ru" in url:
+                    price = bs.find('span', class_='price_value').text
+                    price = priceToINT(price)
+                    name = (bs.find('h1', id='pagetitle').text
+                            .strip())
+
+                elif "лада.онлайн" in url:
+                    price = bs.find('span', class_='cart-options-cost-value').text
+                    price = priceToINT(price)
+                    name = (bs.find('div', id='dle-content').find('h1').text
+                            .strip())
+
+                elif "xn--80aal0a.xn--80asehdb" in url:
+                    price = bs.find('span', class_='cart-options-cost-value').text
+                    price = priceToINT(price)
+                    name = (bs.find('div', id='dle-content').find('h1').text
+                            .strip())
+
+                elif "standart-detail.ru" in url:
+                    price = bs.find('div', class_='price-number').text
+                    price = priceToINT(price)
+                    name = (bs.find('h1', itemprop='name').text
+                            .strip())
+
+                # TODO не работает, проблема с сертификатом
+                elif "bi-bi.ru" in url:
+                    price = bs.find('span', class_='price card-price__cur').text
+                    price = priceToINT(price)
+                    name = (bs.find('h1', class_='section__hl').text
+                            .strip())
+
                 elif "ferrum.group" in url:
                     try:
                         price = bs.find('h2', class_='price discounted').text
