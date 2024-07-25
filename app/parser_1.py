@@ -220,7 +220,13 @@ async def parsing(uniq_url_list, ws):
 
                     price_data = temp_data['webPrice-3121879-default-1']
                     price = json.loads(str(price_data))
-                    price = price['cardPrice']
+                    try:
+                        price = price['cardPrice']
+                    except Exception as err:
+                        mes = (str(uniq_url_list.index(url) + 1) + " of " + str(len(uniq_url_list))
+                               + f" {url} Unexpected {err=}, {type(err)=}")
+                        print(mes)
+                        price = price['price']
                     price = priceToINT(price)
 
                     name_data = temp_data['webStickyProducts-726428-default-1']
