@@ -15,6 +15,7 @@ def priceToINT(price):
         return price
 
 
+# https://jsonformatter.org/
 def get_ozon_json(url):
     json_url = url.split('product/')[1]
     json_url = f"https://www.ozon.ru/api/entrypoint-api.bx/page/json/v2?url=%2Fproduct%2F{json_url}"
@@ -372,6 +373,36 @@ async def parsing_one(url):
                 name = (bs.find('div', class_='h2').text
                         .strip())
 
+            elif "autodemic.ru" in url:
+                price = bs.find('div', class_='js-price-hide product-price').find('span').text
+                price = priceToINT(price)
+                name = (bs.find('h1', class_='product-title').text
+                        .strip())
+
+            elif "original-detal.ru" in url:
+                price = bs.find('span', class_='price_value').text
+                price = priceToINT(price)
+                name = (bs.find('h1', id='pagetitle').text
+                        .strip())
+
+            elif "лада.онлайн" in url:
+                price = bs.find('span', class_='cart-options-cost-value').text
+                price = priceToINT(price)
+                name = (bs.find('div', id='dle-content').find('h1').text
+                        .strip())
+
+            elif "xn--80aal0a.xn--80asehdb" in url:
+                price = bs.find('span', class_='cart-options-cost-value').text
+                price = priceToINT(price)
+                name = (bs.find('div', id='dle-content').find('h1').text
+                        .strip())
+
+            elif "standart-detail.ru" in url:
+                price = bs.find('div', class_='price-number').text
+                price = priceToINT(price)
+                name = (bs.find('h1', itemprop='name').text
+                        .strip())
+
             elif "ferrum.group" in url:
                 try:
                     price = bs.find('h2', class_='price discounted').text
@@ -383,6 +414,19 @@ async def parsing_one(url):
                 price = priceToINT(price)
                 name = (bs.find('h1').text
                         .strip())
+
+            elif "ozon.ru" in url:
+                parsed_data = get_ozon_json(url)
+                temp_data = parsed_data['widgetStates']
+
+                price_data = temp_data['webPrice-3121879-default-1']
+                price = json.loads(str(price_data))
+                price = price['cardPrice']
+                price = priceToINT(price)
+
+                name_data = temp_data['webStickyProducts-726428-default-1']
+                name = json.loads(str(name_data))
+                name = name['name']
 
             else:
                 logging.error(f"{url} - not found method")
