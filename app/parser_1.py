@@ -2,6 +2,9 @@ import json
 import logging
 from bs4 import BeautifulSoup
 import requests
+from selenium import webdriver
+import seleniumbase as sb
+from selenium_stealth import stealth
 
 
 def priceToINT(price):
@@ -10,6 +13,28 @@ def priceToINT(price):
         return int(price)
     except ValueError:
         return price
+
+
+def get_ozon_json(url):
+    json_url = url.split('product/')[1]
+    json_url = f"https://www.ozon.ru/api/entrypoint-api.bx/page/json/v2?url=%2Fproduct%2F{json_url}"
+    # print(json_url)
+    driver = sb.Driver(browser='chrome', headless=True, uc=True)
+    stealth(driver,
+            languages=["ru-RU", "ru"],
+            vendor="Google Inc.",
+            platform="Win64",
+            webgl_vendor="Intel Inc.",
+            renderer="Intel Iris OpenGL Engine",
+            fix_hairline=True,
+            wait=webdriver.Chrome.implicitly_wait(driver, 100.00))
+
+    driver.get(json_url)
+    generated_html = driver.page_source
+    bs = BeautifulSoup(generated_html, "html.parser")
+    json_data = bs.find('pre').text
+    driver.quit()
+    return json.loads(str(json_data))
 
 
 # class, itemprop, id
@@ -187,6 +212,19 @@ async def parsing(uniq_url_list, ws):
                     price = priceToINT(price)
                     name = (bs.find('h1').text
                             .strip())
+
+                elif "ozon.ru" in url:
+                    parsed_data = get_ozon_json(url)
+                    temp_data = parsed_data['widgetStates']
+
+                    price_data = temp_data['webPrice-3121879-default-1']
+                    price = json.loads(str(price_data))
+                    price = price['cardPrice']
+                    price = priceToINT(price)
+
+                    name_data = temp_data['webStickyProducts-726428-default-1']
+                    name = json.loads(str(name_data))
+                    name = name['name']
 
                 else:
                     logging.error(f"{url} - not found method")
