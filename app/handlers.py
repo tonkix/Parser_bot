@@ -54,7 +54,8 @@ def tryDefaultSheetName(wb_data, name):
             except Exception as err:
                 print(f"Unexpected {err=}, {type(err)=}")
                 logging.error(f"sheet name error")
-                sheet = chooseSheet(wb_data)
+                sheet = wb_data.sheetnames[int(0)]
+                # sheet = chooseSheet(wb_data)
     return wb_data[sheet]
 
 
@@ -69,7 +70,6 @@ async def find_elem_by_url(url, parsing_result):
 async def Work_With_File(data: Workbook):
     default_sheet_name = "Ссылки"
     data = tryDefaultSheetName(wb_data=data, name=default_sheet_name)
-
     list_url = list()
     id_url_list = list()
     maxCheckRow = data.max_row + 1  # поиск ссылок в строках
@@ -282,7 +282,11 @@ async def get_doc(message: Message, bot: Bot):
     input_file = openpyxl.load_workbook(input_file)
     start = time.perf_counter()
     await message.answer('Файл обрабатывается...')
-    wb = await Work_With_File(input_file)
+    try:
+        wb = await Work_With_File(input_file)
+    except Exception as err:
+        await message.answer(f"В методе Work_With_File возникла непредвиденная ошибка {err}")
+        return
     print(f"Выполнение заняло {time.perf_counter() - start:0.4f} секунд")
     output_directory = r'output_data/'
     if not os.path.exists(output_directory):
