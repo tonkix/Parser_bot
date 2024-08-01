@@ -64,3 +64,46 @@ async def timeturbo_parsing(url):
         mes = f"{url} Unexpected {err=}, {type(err)=}"
         print(mes)
         logging.error(mes)
+
+
+async def sport33_parsing(url):
+    try:
+        page = requests.get(url)
+        bs = BeautifulSoup(page.text, "lxml")
+        price = priceToINT(bs.find('span', class_='priceVal').text)
+        name = (bs.find('h1', '').text
+                .strip())
+        return {"price": price, "name": name}
+    except Exception as err:
+        mes = f"{url} Unexpected {err=}, {type(err)=}"
+        print(mes)
+        logging.error(mes)
+
+
+async def mag_demfi_parsing(url):
+    try:
+        page = requests.get(url)
+        bs = BeautifulSoup(page.text, "lxml")
+        price = (bs.find('div', itemprop='price').contents[0])
+        price = priceToINT(price)
+        name = (bs.find('div', class_="product-box").find('h1').text
+                .strip())
+        return {"price": price, "name": name}
+    except Exception as err:
+        mes = f"{url} Unexpected {err=}, {type(err)=}"
+        print(mes)
+        logging.error(mes)
+
+
+async def general_parsing(url, name_p, attr_p, name_n, attr_n):
+    try:
+        page = requests.get(url)
+        bs = BeautifulSoup(page.text, "lxml")
+        price = priceToINT(bs.find(name_p, id=attr_p).text)
+        name = (bs.find(name_n,  class_=attr_n).text
+                .strip())
+        return {"price": price, "name": name}
+    except Exception as err:
+        mes = f"{url} Unexpected {err=}, {type(err)=}"
+        print(mes)
+        logging.error(mes)

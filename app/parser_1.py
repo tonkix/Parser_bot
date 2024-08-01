@@ -56,15 +56,14 @@ async def parsing_one(url):
             name = result['name']
 
         elif "33sport.ru" in url:
-            price = bs.find('span', class_='priceVal').text
-            price = priceToINT(price)
-            name = bs.find('h1', '').text
+            result = await pars.sport33_parsing(url)
+            price = result['price']
+            name = result['name']
 
         elif "mag.demfi.ru" in url:
-            price = (bs.find('div', itemprop='price').contents[0])
-            price = priceToINT(price)
-            name = (bs.find('div', class_="product-box").find('h1').text
-                    .strip())
+            result = await pars.mag_demfi_parsing(url)
+            price = result['price']
+            name = result['name']
 
         elif 'ас-тон.рф' in url:
             price = bs.find('p', class_='sku__price').text
