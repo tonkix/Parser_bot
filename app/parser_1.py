@@ -6,36 +6,9 @@ from selenium import webdriver
 import seleniumbase as sb
 from selenium_stealth import stealth
 
-
-def priceToINT(price):
-    try:
-        price = "".join(filter(str.isdigit, price))
-        return int(price)
-    except ValueError:
-        return price
-
-
-# https://jsonformatter.org/
-def get_ozon_json(url):
-    json_url = url.split('product/')[1]
-    json_url = f"https://www.ozon.ru/api/entrypoint-api.bx/page/json/v2?url=%2Fproduct%2F{json_url}"
-    # print(json_url)
-    driver = sb.Driver(browser='chrome', headless=True, uc=True)
-    stealth(driver,
-            languages=["ru-RU", "ru"],
-            vendor="Google Inc.",
-            platform="Win64",
-            webgl_vendor="Intel Inc.",
-            renderer="Intel Iris OpenGL Engine",
-            fix_hairline=True,
-            wait=webdriver.Chrome.implicitly_wait(driver, 100.00))
-
-    driver.get(json_url)
-    generated_html = driver.page_source
-    bs = BeautifulSoup(generated_html, "html.parser")
-    json_data = bs.find('pre').text
-    driver.quit()
-    return json.loads(str(json_data))
+from app.parsing import priceToINT
+from app.parsing import get_ozon_json
+import app.parsing as pars
 
 
 # class, itemprop, id
@@ -49,15 +22,14 @@ async def parsing(uniq_url_list, ws):
                 bs = BeautifulSoup(page.text, "lxml")
 
                 if "motorring.ru" in url:
-                    price = bs.find('span', id='e-curr-price').text
-                    price = priceToINT(price)
-                    name = bs.find('h1', class_='text_title m0 p0').text
+                    result = await pars.motorring_parsing(url)
+                    price = result['price']
+                    name = result['name']
 
                 elif 'timeturbo.ru' in url:
-                    price = bs.find('span', class_='price__new-val font_24').text
-                    price = priceToINT(price)
-                    name = (bs.find('h1', class_='font_32 switcher-title js-popup-title font_20--to-600').text
-                            .strip())
+                    result = await pars.timeturbo_parsing(url)
+                    price = result['price']
+                    name = result['name']
 
                 elif "33sport.ru" in url:
                     price = bs.find('span', class_='priceVal').text
@@ -195,6 +167,12 @@ async def parsing(uniq_url_list, ws):
                     name = (bs.find('h1', itemprop='name').text
                             .strip())
 
+                elif "sal-man.ru" in url:
+                    price = bs.find('span', class_='woocommerce-Price-amount amount').find('bdi').text
+                    price = priceToINT(price) / 100
+                    name = (bs.find('h1', class_='product_title entry-title').text
+                            .strip())
+
                 # TODO не работает, проблема с сертификатом
                 elif "bi-bi.ru" in url:
                     price = bs.find('span', class_='price card-price__cur').text
@@ -263,15 +241,14 @@ async def parsing_one(url):
             bs = BeautifulSoup(page.text, "lxml")
 
             if "motorring.ru" in url:
-                price = bs.find('span', id='e-curr-price').text
-                price = priceToINT(price)
-                name = bs.find('h1', class_='text_title m0 p0').text
+                result = await pars.motorring_parsing(url)
+                price = result['price']
+                name = result['name']
 
             elif 'timeturbo.ru' in url:
-                price = bs.find('span', class_='price__new-val font_24').text
-                price = priceToINT(price)
-                name = (bs.find('h1', class_='font_32 switcher-title js-popup-title font_20--to-600').text
-                        .strip())
+                result = await pars.timeturbo_parsing(url)
+                price = result['price']
+                name = result['name']
 
             elif "33sport.ru" in url:
                 price = bs.find('span', class_='priceVal').text
