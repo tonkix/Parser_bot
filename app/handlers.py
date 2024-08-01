@@ -328,29 +328,41 @@ async def get_links(message: Message):
             await message.answer(text="Найден товар",
                                  disable_notification=True,
                                  disable_web_page_preview=True)
-            data = await parsing_one(product.url)
-            await message.answer(text=f"Товар: \nid: {product.product_tt_id}"
-                                      f"\nКод товара: {product.product_tt_code}"
-                                      f"\nНаименование: {product.name}"
-                                      f"\nСсылка: {product.url}"
-                                      f"\nЗакуп: {product.purchase_price}"
-                                      f"\nРозница: {product.retail_price}"
-                                      f"\nДата внесения: {product.update_date}"
-                                      f"\n\nТекущее наименование: {data['name']}"
-                                      f"\n\nТекущая РЦ: {data['price']}",
-                                 disable_notification=True,
-                                 disable_web_page_preview=True)
+            try:
+                data = await parsing_one(product.url)
+                await message.answer(text=f"Товар: \nid: {product.product_tt_id}"
+                                          f"\nКод товара: {product.product_tt_code}"
+                                          f"\nНаименование: {product.name}"
+                                          f"\nСсылка: {product.url}"
+                                          f"\nЗакуп: {product.purchase_price}"
+                                          f"\nРозница: {product.retail_price}"
+                                          f"\nДата внесения: {product.update_date}"
+                                          f"\n\nТекущее наименование: {data['name']}"
+                                          f"\n\nТекущая РЦ: {data['price']}",
+                                     disable_notification=True,
+                                     disable_web_page_preview=True)
+            except Exception as err:
+                mes: str = f"Возникла ошибка {err=}, {type(err)=}"
+                await message.answer(text=mes)
+                print(mes)
+                logging.error(mes)
             links = list(await rq.get_links_by_tt_id(product.product_tt_id))
             if len(links) != 0:
                 await message.answer(text=f"Найдено {len(links)}",
                                      disable_notification=True)
                 for link in links:
-                    data = await parsing_one(link.url)
-                    await message.answer(text=f"Ссылка: {link.url}\n\n"
-                                              f"Наименование: {data['name']}\n\n"
-                                              f"Цена: {data['price']}\n",
-                                         disable_notification=True,
-                                         disable_web_page_preview=True)
+                    try:
+                        data = await parsing_one(link.url)
+                        await message.answer(text=f"Ссылка: {link.url}\n\n"
+                                                  f"Наименование: {data['name']}\n\n"
+                                                  f"Цена: {data['price']}\n",
+                                             disable_notification=True,
+                                             disable_web_page_preview=True)
+                    except Exception as err:
+                        mes: str = f"Возникла ошибка {err=}, {type(err)=}"
+                        await message.answer(text=mes)
+                        print(mes)
+                        logging.error(mes)
             else:
                 await message.answer(text=f"Ссылок не найдено",
                                      disable_notification=True)
