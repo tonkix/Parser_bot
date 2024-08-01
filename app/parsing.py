@@ -42,9 +42,9 @@ async def motorring_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
-        price = bs.find('span', id='e-curr-price').text
-        price = priceToINT(price)
-        name = bs.find('h1', class_='text_title m0 p0').text
+        price = priceToINT(bs.find('span', id='e-curr-price').text)
+        name = (bs.find('h1', class_='text_title m0 p0').text
+                .strip())
         return {"price": price, "name": name}
     except Exception as err:
         mes = f"{url} Unexpected {err=}, {type(err)=}"
@@ -56,8 +56,7 @@ async def timeturbo_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
-        price = bs.find('span', class_='price__new-val font_24').text
-        price = priceToINT(price)
+        price = priceToINT(bs.find('span', id='price__new-val font_24').text)
         name = (bs.find('h1', class_='font_32 switcher-title js-popup-title font_20--to-600').text
                 .strip())
         return {"price": price, "name": name}
