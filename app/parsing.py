@@ -5,6 +5,12 @@ import requests
 from selenium import webdriver
 import seleniumbase as sb
 from selenium_stealth import stealth
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+WEBDRIVER_PATH = os.getenv("WEBDRIVER_PATH")
 
 
 # https://jsonformatter.org/
@@ -20,6 +26,7 @@ def get_ozon_json(url):
             webgl_vendor="Intel Inc.",
             renderer="Intel Iris OpenGL Engine",
             fix_hairline=True,
+            executable_path=WEBDRIVER_PATH,
             wait=webdriver.Chrome.implicitly_wait(driver, 100.00))
 
     driver.get(json_url)

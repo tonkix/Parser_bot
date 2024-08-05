@@ -2,6 +2,12 @@ import json
 import logging
 from bs4 import BeautifulSoup
 import requests
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+WEBDRIVER_PATH = os.getenv("WEBDRIVER_PATH")
+
 from selenium import webdriver
 import seleniumbase as sb
 from selenium_stealth import stealth
@@ -122,11 +128,13 @@ async def parsing_one(url):
 
         elif "alphardaudio.ru" in url:
             from selenium import webdriver
+            from selenium.webdriver.chrome.service import Service
             from selenium.webdriver import ChromeOptions
 
             options = ChromeOptions()
             options.add_argument("--headless=new")
-            browser = webdriver.Chrome(options=options)
+            service = Service(executable_path=WEBDRIVER_PATH)
+            browser = webdriver.Chrome(service=service, options=options)
             browser.get(url)
             generated_html = browser.page_source
             browser.quit()
