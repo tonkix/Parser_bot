@@ -38,6 +38,31 @@ def priceToINT(price):
         return price
 
 
+async def ozon_parsing(url):
+    try:
+        parsed_data = get_ozon_json(url)
+        temp_data = parsed_data['widgetStates']
+
+        price_data = temp_data['webPrice-3121879-default-1']
+        price = json.loads(str(price_data))
+        try:
+            price = price['cardPrice']
+        except Exception as err:
+            mes = f" {url} Unexpected {err=}, {type(err)=}"
+            print(mes)
+            price = price['price']
+        price = priceToINT(price)
+
+        name_data = temp_data['webStickyProducts-726428-default-1']
+        name = json.loads(str(name_data))
+        name = name['name']
+        return {"price": price, "name": name}
+    except Exception as err:
+        mes = f"{url} Unexpected {err=}, {type(err)=}"
+        print(mes)
+        logging.error(mes)
+
+
 async def motorring_parsing(url):
     try:
         page = requests.get(url, verify=False)
@@ -296,6 +321,66 @@ async def satox_parsing(url):
         logging.error(mes)
 
 
+async def autodemic_parsing(url):
+    try:
+        page = requests.get(url)
+        bs = BeautifulSoup(page.text, "lxml")
+        price = bs.find('div', class_='js-price-hide product-price').find('span').text
+        price = priceToINT(price)
+        name = (bs.find('h1', class_='product-title').text
+                .strip())
+        return {"price": price, "name": name}
+    except Exception as err:
+        mes = f"{url} Unexpected {err=}, {type(err)=}"
+        print(mes)
+        logging.error(mes)
+
+
+async def original_detal_parsing(url):
+    try:
+        page = requests.get(url)
+        bs = BeautifulSoup(page.text, "lxml")
+        price = bs.find('span', class_='price_value').text
+        price = priceToINT(price)
+        name = (bs.find('h1', id='pagetitle').text
+                .strip())
+        return {"price": price, "name": name}
+    except Exception as err:
+        mes = f"{url} Unexpected {err=}, {type(err)=}"
+        print(mes)
+        logging.error(mes)
+
+
+async def lada_online_parsing(url):
+    try:
+        page = requests.get(url)
+        bs = BeautifulSoup(page.text, "lxml")
+        price = bs.find('span', class_='cart-options-cost-value').text
+        price = priceToINT(price)
+        name = (bs.find('div', id='dle-content').find('h1').text
+                .strip())
+        return {"price": price, "name": name}
+    except Exception as err:
+        mes = f"{url} Unexpected {err=}, {type(err)=}"
+        print(mes)
+        logging.error(mes)
+
+
+async def standart_detail_parsing(url):
+    try:
+        page = requests.get(url)
+        bs = BeautifulSoup(page.text, "lxml")
+        price = bs.find('div', class_='price-number').text
+        price = priceToINT(price)
+        name = (bs.find('h1', itemprop='name').text
+                .strip())
+        return {"price": price, "name": name}
+    except Exception as err:
+        mes = f"{url} Unexpected {err=}, {type(err)=}"
+        print(mes)
+        logging.error(mes)
+
+
 async def rezkon_parsing(url):
     try:
         page = requests.get(url)
@@ -311,12 +396,73 @@ async def rezkon_parsing(url):
         logging.error(mes)
 
 
-async def general_parsing(url, name_p, attr_p, name_n, attr_n):
+async def salman_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
-        price = priceToINT(bs.find(name_p, id=attr_p).text)
-        name = (bs.find(name_n,  class_=attr_n).text
+        price = bs.find('span', class_='woocommerce-Price-amount amount').find('bdi').text
+        price = priceToINT(price) / 100
+        name = (bs.find('h1', class_='product_title entry-title').text
+                .strip())
+        return {"price": price, "name": name}
+    except Exception as err:
+        mes = f"{url} Unexpected {err=}, {type(err)=}"
+        print(mes)
+        logging.error(mes)
+
+
+async def ferrum_parsing(url):
+    try:
+        page = requests.get(url)
+        bs = BeautifulSoup(page.text, "lxml")
+        try:
+
+            price = bs.find('h2', class_='price discounted').text
+        except Exception as err:
+            price = bs.find('h2', class_='price').text
+            mes = f"Unexpected {err=}, {type(err)=}"
+            logging.error(mes)
+
+        price = priceToINT(price)
+        name = (bs.find('h1').text
+                .strip())
+        return {"price": price, "name": name}
+    except Exception as err:
+        mes = f"{url} Unexpected {err=}, {type(err)=}"
+        print(mes)
+        logging.error(mes)
+
+
+async def bibi_parsing(url):
+    try:
+        page = requests.get(url, verify=False)
+        bs = BeautifulSoup(page.text, "lxml")
+        price = bs.find('span', class_='price card-price__cur').text
+        price = priceToINT(price)
+        name = (bs.find('h1', class_='section__hl').text
+                .strip())
+        return {"price": price, "name": name}
+    except Exception as err:
+        mes = f"{url} Unexpected {err=}, {type(err)=}"
+        print(mes)
+        logging.error(mes)
+
+
+async def alphardaudio_parsing(url):
+    try:
+        from selenium import webdriver
+        from selenium.webdriver import ChromeOptions
+
+        options = ChromeOptions()
+        options.add_argument("--headless=new")
+        browser = webdriver.Chrome(options=options)
+        browser.get(url)
+        generated_html = browser.page_source
+        browser.quit()
+        bs = BeautifulSoup(generated_html, 'html.parser')
+        price = bs.find('div', class_='modification_price').find('span').text
+        price = priceToINT(price)
+        name = (bs.find('h1', class_='h3').text
                 .strip())
         return {"price": price, "name": name}
     except Exception as err:

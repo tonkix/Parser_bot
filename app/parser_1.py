@@ -1,17 +1,7 @@
-import json
 import logging
-from bs4 import BeautifulSoup
-import requests
-from selenium import webdriver
-import seleniumbase as sb
-from selenium_stealth import stealth
-
-from app.parsing import priceToINT
-from app.parsing import get_ozon_json
 import app.parsing as pars
 
 
-# class, itemprop, id
 async def parsing(uniq_url_list, ws):
     logging.info('Parsing started')
     output_list = list()
@@ -109,20 +99,9 @@ async def parsing_one(url):
             name = result['name']
 
         elif "alphardaudio.ru" in url:
-            from selenium import webdriver
-            from selenium.webdriver import ChromeOptions
-
-            options = ChromeOptions()
-            options.add_argument("--headless=new")
-            browser = webdriver.Chrome(options=options)
-            browser.get(url)
-            generated_html = browser.page_source
-            browser.quit()
-            bs = BeautifulSoup(generated_html, 'html.parser')
-            price = bs.find('div', class_='modification_price').find('span').text
-            price = priceToINT(price)
-            name = (bs.find('h1', class_='h3').text
-                    .strip())
+            result = await pars.alphardaudio_parsing(url)
+            price = result['price']
+            name = result['name']
 
         elif "shop-bear.ru" in url:
             result = await pars.shop_bear_parsing(url)
@@ -145,101 +124,50 @@ async def parsing_one(url):
             name = result['name']
 
         elif "autodemic.ru" in url:
-            page = requests.get(url)
-            bs = BeautifulSoup(page.text, "lxml")
-
-            price = bs.find('div', class_='js-price-hide product-price').find('span').text
-            price = priceToINT(price)
-            name = (bs.find('h1', class_='product-title').text
-                    .strip())
+            result = await pars.autodemic_parsing(url)
+            price = result['price']
+            name = result['name']
 
         elif "original-detal.ru" in url:
-            page = requests.get(url)
-            bs = BeautifulSoup(page.text, "lxml")
-
-            price = bs.find('span', class_='price_value').text
-            price = priceToINT(price)
-            name = (bs.find('h1', id='pagetitle').text
-                    .strip())
+            result = await pars.original_detal_parsing(url)
+            price = result['price']
+            name = result['name']
 
         elif "лада.онлайн" in url:
-            page = requests.get(url)
-            bs = BeautifulSoup(page.text, "lxml")
-
-            price = bs.find('span', class_='cart-options-cost-value').text
-            price = priceToINT(price)
-            name = (bs.find('div', id='dle-content').find('h1').text
-                    .strip())
+            result = await pars.lada_online_parsing(url)
+            price = result['price']
+            name = result['name']
 
         elif "xn--80aal0a.xn--80asehdb" in url:
-            page = requests.get(url)
-            bs = BeautifulSoup(page.text, "lxml")
-
-            price = bs.find('span', class_='cart-options-cost-value').text
-            price = priceToINT(price)
-            name = (bs.find('div', id='dle-content').find('h1').text
-                    .strip())
+            result = await pars.lada_online_parsing(url)
+            price = result['price']
+            name = result['name']
 
         elif "standart-detail.ru" in url:
-            page = requests.get(url)
-            bs = BeautifulSoup(page.text, "lxml")
-
-            price = bs.find('div', class_='price-number').text
-            price = priceToINT(price)
-            name = (bs.find('h1', itemprop='name').text
-                    .strip())
+            result = await pars.standart_detail_parsing(url)
+            price = result['price']
+            name = result['name']
 
         elif "sal-man.ru" in url:
-            page = requests.get(url)
-            bs = BeautifulSoup(page.text, "lxml")
-
-            price = bs.find('span', class_='woocommerce-Price-amount amount').find('bdi').text
-            price = priceToINT(price) / 100
-            name = (bs.find('h1', class_='product_title entry-title').text
-                    .strip())
+            result = await pars.salman_parsing(url)
+            price = result['price']
+            name = result['name']
 
         # TODO не работает, проблема с сертификатом
         elif "bi-bi.ru" in url:
-            page = requests.get(url)
-            bs = BeautifulSoup(page.text, "lxml")
-
-            price = bs.find('span', class_='price card-price__cur').text
-            price = priceToINT(price)
-            name = (bs.find('h1', class_='section__hl').text
-                    .strip())
+            result = await pars.bibi_parsing(url)
+            price = result['price']
+            name = result['name']
 
         elif "ferrum.group" in url:
-            try:
-                page = requests.get(url)
-                bs = BeautifulSoup(page.text, "lxml")
-
-                price = bs.find('h2', class_='price discounted').text
-            except Exception as err:
-                price = bs.find('h2', class_='price').text
-                mes = f"Unexpected {err=}, {type(err)=}"
-                logging.error(mes)
-
-            price = priceToINT(price)
-            name = (bs.find('h1').text
-                    .strip())
+            result = await pars.ferrum_parsing(url)
+            price = result['price']
+            name = result['name']
 
         elif "ozon.ru" in url:
-            parsed_data = get_ozon_json(url)
-            temp_data = parsed_data['widgetStates']
-
-            price_data = temp_data['webPrice-3121879-default-1']
-            price = json.loads(str(price_data))
-            try:
-                price = price['cardPrice']
-            except Exception as err:
-                mes = f" {url} Unexpected {err=}, {type(err)=}"
-                print(mes)
-                price = price['price']
-            price = priceToINT(price)
-
-            name_data = temp_data['webStickyProducts-726428-default-1']
-            name = json.loads(str(name_data))
-            name = name['name']
+            result = await pars.ozon_parsing(url)
+            price = result['price']
+            name = result['name']
 
         else:
             logging.error(f"{url} - not found method")

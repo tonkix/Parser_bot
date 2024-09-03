@@ -110,7 +110,6 @@ async def get_products_by_name(name):
     print('finding by NAME')
 
 
-
 async def get_links_by_tt_id(product_tt_id):
     async with async_session() as session:
         return await session.scalars(select(Link).where(Link.product_id == product_tt_id))
