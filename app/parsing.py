@@ -433,14 +433,23 @@ async def ferrum_parsing(url):
         logging.error(mes)
 
 
+# TODO не работает
 async def bibi_parsing(url):
     try:
-        page = requests.get(url, verify=False)
-        bs = BeautifulSoup(page.text, "lxml")
-        price = bs.find('span', class_='price card-price__cur').text
+        from selenium import webdriver
+        from selenium.webdriver import ChromeOptions
+
+        options = ChromeOptions()
+        options.add_argument("--headless=new")
+        browser = webdriver.Chrome(options=options)
+        browser.get(url)
+        generated_html = browser.page_source
+        browser.quit()
+        print(generated_html)
+        bs = BeautifulSoup(generated_html, 'html.parser')
+        price = bs.find('span', class_='price card-price__cur')
         price = priceToINT(price)
-        name = (bs.find('h1', class_='section__hl').text
-                .strip())
+        name = (bs.find('h1', class_='section__hl').text.strip())
         return {"price": price, "name": name}
     except Exception as err:
         mes = f"{url} Unexpected {err=}, {type(err)=}"
