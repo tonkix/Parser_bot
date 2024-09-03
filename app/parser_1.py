@@ -64,86 +64,49 @@ async def parsing_one(url):
             name = result['name']
 
         elif 'ас-тон.рф' in url:
-            page = requests.get(url)
-            bs = BeautifulSoup(page.text, "lxml")
-
-            price = bs.find('p', class_='sku__price').text
-            price = priceToINT(price)
-            name = (bs.find('div', class_='sku__heading').text
-                    .strip())
+            result = await pars.aston_parsing(url)
+            price = result['price']
+            name = result['name']
 
         elif 'prestigeltd.ru' in url:
-            page = requests.get(url)
-            bs = BeautifulSoup(page.text, "lxml")
-
-            price = bs.find('div', class_='item-current-price').text
-            price = priceToINT(price)
-            name = (bs.find('span', class_='intec-cl-text-hover').text
-                    .strip())
+            result = await pars.prestigeltd_parsing(url)
+            price = result['price']
+            name = result['name']
 
         elif 'store.starline.ru' in url:
-            page = requests.get(url)
-            bs = BeautifulSoup(page.text, "lxml")
-
-            price = bs.find('div', class_='price mr-3').text
-            price = priceToINT(price)
-            name = (bs.find('h2', itemprop="name").find('em').text
-                    .strip())
+            result = await pars.store_starline_parsing(url)
+            price = result['price']
+            name = result['name']
 
         elif 'starline-russia' in url:
-            page = requests.get(url)
-            bs = BeautifulSoup(page.text, "lxml")
-
-            price = (bs.find('div',
-                             class_='woocommerce-product-details__short-description').find('p').text)
-            price = priceToINT(price)
-            name = (bs.find('h1', class_='product_title entry-title').text
-                    .strip())
+            result = await pars.starline_russia_parsing(url)
+            price = result['price']
+            name = result['name']
 
         elif "avttuning.ru" in url:
-            page = requests.get(url)
-            bs = BeautifulSoup(page.text, "lxml")
-
-            price = bs.find('span', class_='item_price').text
-            price = priceToINT(price)
-            name = (bs.find('h2', '').text
-                    .strip())
+            result = await pars.avt_tuning_parsing(url)
+            price = result['price']
+            name = result['name']
 
         elif "gearbox63" in url:
-            page = requests.get(url)
-            bs = BeautifulSoup(page.text, "lxml")
-
-            price = bs.find('span', class_='autocalc-product-price').text
-            price = priceToINT(price)
-            name = (bs.find('h1', class_='h1-prod-name').text
-                    .strip())
+            result = await pars.gearbox63_parsing(url)
+            price = result['price']
+            name = result['name']
 
         elif "avtoall.ru" in url:
-            page = requests.get(url)
-            bs = BeautifulSoup(page.text, "lxml")
-
-            price = bs.find('div', class_="d-flex align-items-center").text
-            price = priceToINT(price)
-            name = (bs.find('div', class_='heading').find('span', '').text
-                    .strip())
+            result = await pars.avtoall_parsing(url)
+            price = result['price']
+            name = result['name']
 
         elif "xenon63" in url:
-            page = requests.get(url)
-            bs = BeautifulSoup(page.text, "lxml")
-
-            price = bs.find('span', class_='priceVal').text
-            price = priceToINT(price)
-            name = (bs.find('h1', class_='changeName').text
-                    .strip())
+            result = await pars.xenon63_parsing(url)
+            price = result['price']
+            name = result['name']
 
         elif "tuningprosto" in url:
-            page = requests.get(url)
-            bs = BeautifulSoup(page.text, "lxml")
-
-            price = bs.find('div', class_='product-detail__price font-heavy').find('div').find('span').text
-            price = priceToINT(price)
-            name = (bs.find('h1', class_='product-detail__title font-bold').text
-                    .strip())
+            result = await pars.tuningprosto_parsing(url)
+            price = result['price']
+            name = result['name']
 
         elif "alphardaudio.ru" in url:
             from selenium import webdriver
@@ -162,40 +125,24 @@ async def parsing_one(url):
                     .strip())
 
         elif "shop-bear.ru" in url:
-            page = requests.get(url)
-            bs = BeautifulSoup(page.text, "lxml")
-
-            price = bs.find('span', class_='price_value').text
-            price = priceToINT(price)
-            name = (bs.find('h1', id='pagetitle').text
-                    .strip())
+            result = await pars.shop_bear_parsing(url)
+            price = result['price']
+            name = result['name']
 
         elif "loudsound.ru" in url:
-            page = requests.get(url)
-            bs = BeautifulSoup(page.text, "lxml")
-
-            price = bs.find('span', itemprop='price').text
-            price = priceToINT(price)
-            name = (bs.find('h1', itemprop='name').text
-                    .strip())
+            result = await pars.loudsound_parsing(url)
+            price = result['price']
+            name = result['name']
 
         elif "satox.ru" in url:
-            page = requests.get(url)
-            bs = BeautifulSoup(page.text, "lxml")
-
-            price = bs.find('span', class_='num').text
-            price = priceToINT(price)
-            name = (bs.find('h1', itemprop='name').text
-                    .strip())
+            result = await pars.satox_parsing(url)
+            price = result['price']
+            name = result['name']
 
         elif "rezkon.ru" in url:
-            page = requests.get(url)
-            bs = BeautifulSoup(page.text, "lxml")
-
-            price = bs.find('div', class_='price').text
-            price = priceToINT(price)
-            name = (bs.find('div', class_='h2').text
-                    .strip())
+            result = await pars.rezkon_parsing(url)
+            price = result['price']
+            name = result['name']
 
         elif "autodemic.ru" in url:
             page = requests.get(url)

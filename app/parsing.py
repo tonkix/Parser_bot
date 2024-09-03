@@ -115,6 +115,202 @@ async def mag_demfi_parsing(url):
         logging.error(mes)
 
 
+async def aston_parsing(url):
+    try:
+        page = requests.get(url)
+        bs = BeautifulSoup(page.text, "lxml")
+        price = bs.find('p', class_='sku__price').text
+        price = priceToINT(price)
+        name = (bs.find('div', class_='sku__heading').text
+                .strip())
+        return {"price": price, "name": name}
+    except Exception as err:
+        mes = f"{url} Unexpected {err=}, {type(err)=}"
+        print(mes)
+        logging.error(mes)
+
+
+async def prestigeltd_parsing(url):
+    try:
+        page = requests.get(url)
+        bs = BeautifulSoup(page.text, "lxml")
+        price = bs.find('div', class_='item-current-price').text
+        price = priceToINT(price)
+        name = (bs.find('span', class_='intec-cl-text-hover').text
+                .strip())
+        return {"price": price, "name": name}
+    except Exception as err:
+        mes = f"{url} Unexpected {err=}, {type(err)=}"
+        print(mes)
+        logging.error(mes)
+
+
+async def store_starline_parsing(url):
+    try:
+        page = requests.get(url)
+        bs = BeautifulSoup(page.text, "lxml")
+        price = bs.find('div', class_='price mr-3').text
+        price = priceToINT(price)
+        name = (bs.find('h2', itemprop="name").find('em').text
+                .strip())
+        return {"price": price, "name": name}
+    except Exception as err:
+        mes = f"{url} Unexpected {err=}, {type(err)=}"
+        print(mes)
+        logging.error(mes)
+
+
+async def starline_russia_parsing(url):
+    try:
+        page = requests.get(url)
+        bs = BeautifulSoup(page.text, "lxml")
+        price = (bs.find('div',
+                         class_='woocommerce-product-details__short-description').find('p').text)
+        price = priceToINT(price)
+        name = (bs.find('h1', class_='product_title entry-title').text
+                .strip())
+        return {"price": price, "name": name}
+    except Exception as err:
+        mes = f"{url} Unexpected {err=}, {type(err)=}"
+        print(mes)
+        logging.error(mes)
+
+
+async def avt_tuning_parsing(url):
+    try:
+        page = requests.get(url)
+        bs = BeautifulSoup(page.text, "lxml")
+        price = bs.find('span', class_='item_price').text
+        price = priceToINT(price)
+        name = (bs.find('h2', '').text
+                .strip())
+        return {"price": price, "name": name}
+    except Exception as err:
+        mes = f"{url} Unexpected {err=}, {type(err)=}"
+        print(mes)
+        logging.error(mes)
+
+
+async def gearbox63_parsing(url):
+    try:
+        page = requests.get(url)
+        bs = BeautifulSoup(page.text, "lxml")
+        price = bs.find('span', class_='autocalc-product-price').text
+        price = priceToINT(price)
+        name = (bs.find('h1', class_='h1-prod-name').text
+                .strip())
+        return {"price": price, "name": name}
+    except Exception as err:
+        mes = f"{url} Unexpected {err=}, {type(err)=}"
+        print(mes)
+        logging.error(mes)
+
+
+async def avtoall_parsing(url):
+    try:
+        page = requests.get(url)
+        bs = BeautifulSoup(page.text, "lxml")
+        price = bs.find('div', class_="d-flex align-items-center").text
+        price = priceToINT(price)
+        name = (bs.find('div', class_='heading').find('span', '').text
+                .strip())
+        return {"price": price, "name": name}
+    except Exception as err:
+        mes = f"{url} Unexpected {err=}, {type(err)=}"
+        print(mes)
+        logging.error(mes)
+
+
+async def xenon63_parsing(url):
+    try:
+        page = requests.get(url)
+        bs = BeautifulSoup(page.text, "lxml")
+        price = bs.find('span', class_='priceVal').text
+        price = priceToINT(price)
+        name = (bs.find('h1', class_='changeName').text
+                .strip())
+        return {"price": price, "name": name}
+    except Exception as err:
+        mes = f"{url} Unexpected {err=}, {type(err)=}"
+        print(mes)
+        logging.error(mes)
+
+
+async def tuningprosto_parsing(url):
+    try:
+        page = requests.get(url)
+        bs = BeautifulSoup(page.text, "lxml")
+        price = bs.find('div', class_='product-detail__price font-heavy').find('div').find('span').text
+        price = priceToINT(price)
+        name = (bs.find('h1', class_='product-detail__title font-bold').text
+                .strip())
+        return {"price": price, "name": name}
+    except Exception as err:
+        mes = f"{url} Unexpected {err=}, {type(err)=}"
+        print(mes)
+        logging.error(mes)
+
+
+async def shop_bear_parsing(url):
+    try:
+        page = requests.get(url)
+        bs = BeautifulSoup(page.text, "lxml")
+        price = bs.find('span', class_='price_value').text
+        price = priceToINT(price)
+        name = (bs.find('h1', id='pagetitle').text
+                .strip())
+        return {"price": price, "name": name}
+    except Exception as err:
+        mes = f"{url} Unexpected {err=}, {type(err)=}"
+        print(mes)
+        logging.error(mes)
+
+
+async def loudsound_parsing(url):
+    try:
+        page = requests.get(url)
+        bs = BeautifulSoup(page.text, "lxml")
+        price = bs.find('span', itemprop='price').text
+        price = priceToINT(price)
+        name = (bs.find('h1', itemprop='name').text
+                .strip())
+        return {"price": price, "name": name}
+    except Exception as err:
+        mes = f"{url} Unexpected {err=}, {type(err)=}"
+        print(mes)
+        logging.error(mes)
+
+
+async def satox_parsing(url):
+    try:
+        page = requests.get(url)
+        bs = BeautifulSoup(page.text, "lxml")
+        price = bs.find('span', class_='num').text
+        price = priceToINT(price)
+        name = (bs.find('h1', itemprop='name').text
+                .strip())
+        return {"price": price, "name": name}
+    except Exception as err:
+        mes = f"{url} Unexpected {err=}, {type(err)=}"
+        print(mes)
+        logging.error(mes)
+
+
+async def rezkon_parsing(url):
+    try:
+        page = requests.get(url)
+        bs = BeautifulSoup(page.text, "lxml")
+        price = bs.find('div', class_='price').text
+        price = priceToINT(price)
+        name = (bs.find('div', class_='h2').text
+                .strip())
+        return {"price": price, "name": name}
+    except Exception as err:
+        mes = f"{url} Unexpected {err=}, {type(err)=}"
+        print(mes)
+        logging.error(mes)
+
+
 async def general_parsing(url, name_p, attr_p, name_n, attr_n):
     try:
         page = requests.get(url)
