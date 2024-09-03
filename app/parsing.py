@@ -40,7 +40,7 @@ def priceToINT(price):
 
 async def motorring_parsing(url):
     try:
-        page = requests.get(url)
+        page = requests.get(url, verify=False)
         bs = BeautifulSoup(page.text, "lxml")
         price = priceToINT(bs.find('span', id='e-curr-price').text)
         name = (bs.find('h1', class_='text_title m0 p0').text
@@ -50,6 +50,26 @@ async def motorring_parsing(url):
         mes = f"{url} Unexpected {err=}, {type(err)=}"
         print(mes)
         logging.error(mes)
+        '''try:
+            from selenium import webdriver
+            from selenium.webdriver import ChromeOptions
+
+            options = ChromeOptions()
+            options.add_argument("--headless=new")
+            browser = webdriver.Chrome(options=options)
+            browser.get(url)
+            generated_html = browser.page_source
+            browser.quit()
+            bs = BeautifulSoup(generated_html, 'html.parser')
+
+            price = priceToINT(bs.find('span', id='e-curr-price').text)
+            name = (bs.find('h1', class_='text_title m0 p0').text
+                    .strip())
+            return {"price": price, "name": name}
+        except Exception as err:
+            mes = f"{url} Unexpected {err=}, {type(err)=}"
+            print(mes)
+            logging.error(mes)'''
 
 
 async def timeturbo_parsing(url):

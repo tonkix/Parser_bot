@@ -324,6 +324,7 @@ async def get_links(message: Message):
     products = await find_products(message.text)
     for product in products:
         logging.info("Перебор")
+        print("Перебор")
         if product is not None:
             await message.answer(text="Найден товар",
                                  disable_notification=True,

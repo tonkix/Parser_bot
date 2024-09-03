@@ -42,8 +42,6 @@ async def parsing_one(url):
     price = ''
     name = ''
     if url is not None:
-        page = requests.get(url)
-        bs = BeautifulSoup(page.text, "lxml")
 
         if "motorring.ru" in url:
             result = await pars.motorring_parsing(url)
@@ -66,24 +64,36 @@ async def parsing_one(url):
             name = result['name']
 
         elif 'ас-тон.рф' in url:
+            page = requests.get(url)
+            bs = BeautifulSoup(page.text, "lxml")
+
             price = bs.find('p', class_='sku__price').text
             price = priceToINT(price)
             name = (bs.find('div', class_='sku__heading').text
                     .strip())
 
         elif 'prestigeltd.ru' in url:
+            page = requests.get(url)
+            bs = BeautifulSoup(page.text, "lxml")
+
             price = bs.find('div', class_='item-current-price').text
             price = priceToINT(price)
             name = (bs.find('span', class_='intec-cl-text-hover').text
                     .strip())
 
         elif 'store.starline.ru' in url:
+            page = requests.get(url)
+            bs = BeautifulSoup(page.text, "lxml")
+
             price = bs.find('div', class_='price mr-3').text
             price = priceToINT(price)
             name = (bs.find('h2', itemprop="name").find('em').text
                     .strip())
 
         elif 'starline-russia' in url:
+            page = requests.get(url)
+            bs = BeautifulSoup(page.text, "lxml")
+
             price = (bs.find('div',
                              class_='woocommerce-product-details__short-description').find('p').text)
             price = priceToINT(price)
@@ -91,30 +101,45 @@ async def parsing_one(url):
                     .strip())
 
         elif "avttuning.ru" in url:
+            page = requests.get(url)
+            bs = BeautifulSoup(page.text, "lxml")
+
             price = bs.find('span', class_='item_price').text
             price = priceToINT(price)
             name = (bs.find('h2', '').text
                     .strip())
 
         elif "gearbox63" in url:
+            page = requests.get(url)
+            bs = BeautifulSoup(page.text, "lxml")
+
             price = bs.find('span', class_='autocalc-product-price').text
             price = priceToINT(price)
             name = (bs.find('h1', class_='h1-prod-name').text
                     .strip())
 
         elif "avtoall.ru" in url:
+            page = requests.get(url)
+            bs = BeautifulSoup(page.text, "lxml")
+
             price = bs.find('div', class_="d-flex align-items-center").text
             price = priceToINT(price)
             name = (bs.find('div', class_='heading').find('span', '').text
                     .strip())
 
         elif "xenon63" in url:
+            page = requests.get(url)
+            bs = BeautifulSoup(page.text, "lxml")
+
             price = bs.find('span', class_='priceVal').text
             price = priceToINT(price)
             name = (bs.find('h1', class_='changeName').text
                     .strip())
 
         elif "tuningprosto" in url:
+            page = requests.get(url)
+            bs = BeautifulSoup(page.text, "lxml")
+
             price = bs.find('div', class_='product-detail__price font-heavy').find('div').find('span').text
             price = priceToINT(price)
             name = (bs.find('h1', class_='product-detail__title font-bold').text
@@ -137,60 +162,90 @@ async def parsing_one(url):
                     .strip())
 
         elif "shop-bear.ru" in url:
+            page = requests.get(url)
+            bs = BeautifulSoup(page.text, "lxml")
+
             price = bs.find('span', class_='price_value').text
             price = priceToINT(price)
             name = (bs.find('h1', id='pagetitle').text
                     .strip())
 
         elif "loudsound.ru" in url:
+            page = requests.get(url)
+            bs = BeautifulSoup(page.text, "lxml")
+
             price = bs.find('span', itemprop='price').text
             price = priceToINT(price)
             name = (bs.find('h1', itemprop='name').text
                     .strip())
 
         elif "satox.ru" in url:
+            page = requests.get(url)
+            bs = BeautifulSoup(page.text, "lxml")
+
             price = bs.find('span', class_='num').text
             price = priceToINT(price)
             name = (bs.find('h1', itemprop='name').text
                     .strip())
 
         elif "rezkon.ru" in url:
+            page = requests.get(url)
+            bs = BeautifulSoup(page.text, "lxml")
+
             price = bs.find('div', class_='price').text
             price = priceToINT(price)
             name = (bs.find('div', class_='h2').text
                     .strip())
 
         elif "autodemic.ru" in url:
+            page = requests.get(url)
+            bs = BeautifulSoup(page.text, "lxml")
+
             price = bs.find('div', class_='js-price-hide product-price').find('span').text
             price = priceToINT(price)
             name = (bs.find('h1', class_='product-title').text
                     .strip())
 
         elif "original-detal.ru" in url:
+            page = requests.get(url)
+            bs = BeautifulSoup(page.text, "lxml")
+
             price = bs.find('span', class_='price_value').text
             price = priceToINT(price)
             name = (bs.find('h1', id='pagetitle').text
                     .strip())
 
         elif "лада.онлайн" in url:
+            page = requests.get(url)
+            bs = BeautifulSoup(page.text, "lxml")
+
             price = bs.find('span', class_='cart-options-cost-value').text
             price = priceToINT(price)
             name = (bs.find('div', id='dle-content').find('h1').text
                     .strip())
 
         elif "xn--80aal0a.xn--80asehdb" in url:
+            page = requests.get(url)
+            bs = BeautifulSoup(page.text, "lxml")
+
             price = bs.find('span', class_='cart-options-cost-value').text
             price = priceToINT(price)
             name = (bs.find('div', id='dle-content').find('h1').text
                     .strip())
 
         elif "standart-detail.ru" in url:
+            page = requests.get(url)
+            bs = BeautifulSoup(page.text, "lxml")
+
             price = bs.find('div', class_='price-number').text
             price = priceToINT(price)
             name = (bs.find('h1', itemprop='name').text
                     .strip())
 
         elif "sal-man.ru" in url:
+            page = requests.get(url)
+            bs = BeautifulSoup(page.text, "lxml")
+
             price = bs.find('span', class_='woocommerce-Price-amount amount').find('bdi').text
             price = priceToINT(price) / 100
             name = (bs.find('h1', class_='product_title entry-title').text
@@ -198,6 +253,9 @@ async def parsing_one(url):
 
         # TODO не работает, проблема с сертификатом
         elif "bi-bi.ru" in url:
+            page = requests.get(url)
+            bs = BeautifulSoup(page.text, "lxml")
+
             price = bs.find('span', class_='price card-price__cur').text
             price = priceToINT(price)
             name = (bs.find('h1', class_='section__hl').text
@@ -205,6 +263,9 @@ async def parsing_one(url):
 
         elif "ferrum.group" in url:
             try:
+                page = requests.get(url)
+                bs = BeautifulSoup(page.text, "lxml")
+
                 price = bs.find('h2', class_='price discounted').text
             except Exception as err:
                 price = bs.find('h2', class_='price').text
