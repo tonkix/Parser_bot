@@ -58,6 +58,11 @@ async def parsing_one(url):
             price = result['price']
             name = result['name']
 
+        elif 'xn----7sb4bdnh.xn--p1ai' in url:
+            result = await pars.aston_parsing(url)
+            price = result['price']
+            name = result['name']
+
         elif 'prestigeltd.ru' in url:
             result = await pars.prestigeltd_parsing(url)
             price = result['price']
@@ -143,6 +148,16 @@ async def parsing_one(url):
             price = result['price']
             name = result['name']
 
+        elif "nvs-car.ru" in url:
+            result = await pars.nvs_car_parsing(url)
+            price = result['price']
+            name = result['name']
+
+        elif "car-team.ru" in url:
+            result = await pars.car_team_parsing(url)
+            price = result['price']
+            name = result['name']
+
         elif "standart-detail.ru" in url:
             result = await pars.standart_detail_parsing(url)
             price = result['price']
@@ -150,6 +165,26 @@ async def parsing_one(url):
 
         elif "sal-man.ru" in url:
             result = await pars.salman_parsing(url)
+            price = result['price']
+            name = result['name']
+
+        elif "avtozap63.ru" in url:
+            result = await pars.avtozap_parsing(url)
+            price = result['price']
+            name = result['name']
+
+        elif "lada-sport.ru" in url:
+            result = await pars.lada_sport_parsing(url)
+            price = result['price']
+            name = result['name']
+
+        elif "komponentavto.ru" in url:
+            result = await pars.komponentavto_parsing(url)
+            price = result['price']
+            name = result['name']
+
+        elif "avito.ru" in url:
+            result = await pars.avito_parsing(url)
             price = result['price']
             name = result['name']
 

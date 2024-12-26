@@ -73,7 +73,7 @@ async def Work_With_File(data: Workbook):
     list_url = list()
     id_url_list = list()
     maxCheckRow = data.max_row + 1  # поиск ссылок в строках
-    maxCheckColumn = 20  # поиск ссылок в колонках
+    maxCheckColumn = 30  # поиск ссылок в колонках
     for col in range(0, maxCheckColumn):
         for row in range(0, maxCheckRow):
             cell_url = data.cell(row=row + 1, column=col + 1).value
