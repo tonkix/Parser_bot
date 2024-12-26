@@ -34,6 +34,21 @@ class Product(Base):
     retail_price: Mapped[int] = mapped_column(Integer, nullable=True)
     update_date: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime)
 
+    '''def __iter__(self):
+        return [self.id,
+                self.product_tt_id,
+                self.product_tt_code,
+                self.name,
+                self.url,
+                self.purchase_price,
+                self.retail_price,
+                self.update_date]'''
+
+    def update(self, **kwargs):
+        for key, value in kwargs.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+
 
 class Link(Base):
     __tablename__ = 'links'

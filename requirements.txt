@@ -8,5 +8,7 @@ asyncio~=3.4.3
 SQLAlchemy~=2.0.31
 aiosqlite
 beautifulsoup4~=4.12.3
-selenium
 APScheduler~=3.10.4
+selenium~=4.23.1
+seleniumbase~=4.29.0
+selenium-stealth
