@@ -12,25 +12,34 @@ from selenium.webdriver import FirefoxOptions
 from selenium import webdriver
 import undetected_chromedriver as uc
 import time
+from selenium.webdriver.support import expected_conditions as ec
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.common.by import By
 
 
 # https://jsonformatter.org/
 def get_ozon_json(url):
-    json_url = url.split('product/')[1]
-    json_url = f"https://www.ozon.ru/api/entrypoint-api.bx/page/json/v2?url=%2Fproduct%2F{json_url}"
-    # print(json_url)
+    # start = time.perf_counter()
+    json_url = f"https://www.ozon.ru/api/entrypoint-api.bx/page/json/v2?url=%2Fproduct%2F{url.split('product/')[1]}"
 
     driver = uc.Chrome(headless=True, use_subprocess=False)
+    # print(f"Ссылка заняла {time.perf_counter() - start:0.4f} секунд")
     stealth(driver,
             languages=["ru-RU", "ru"],
             vendor="Google Inc.",
             platform="Win64",
             webgl_vendor="Intel Inc.",
             renderer="Intel Iris OpenGL Engine",
-            fix_hairline=True,
-            wait=webdriver.Chrome.implicitly_wait(driver, 100.00))
+            fix_hairline=True)
+
     driver.get(json_url)
-    time.sleep(5)
+    try:
+        element = WebDriverWait(driver, 5).until(
+            ec.presence_of_element_located((By.TAG_NAME, "pre"))
+        )
+    except TimeoutError:
+        driver.quit()
+    # print(f"Ссылка заняла {time.perf_counter() - start:0.4f} секунд")
     generated_html = driver.page_source
     bs = BeautifulSoup(generated_html, "html.parser")
     json_data = bs.find('pre').text
@@ -59,7 +68,6 @@ def get_fast_ozon_json(url):
     params = {
         'url': f"/product/{url.split('product/')[1]}"
     }
-
 
     page = requests.get('https://www.ozon.ru/api/entrypoint-api.bx/page/json/v2', params=params, headers=headers)
     print(page)
