@@ -48,33 +48,7 @@ def get_ozon_json(url):
 
 
 def get_fast_ozon_json(url):
-    from curl_cffi import requests
-
-    json_url = url.split('product/')[1]
-    json_url = f"https://www.ozon.ru/api/entrypoint-api.bx/page/json/v2?url=%2Fproduct%2F{json_url}"
-    headers = {
-        'x-o3-parent-requestid': '73e1130b6658bd3f2220dc7d1680049f',
-        'sec-ch-ua-platform': '"Windows"',
-        'Referer': 'https://www.ozon.ru/product/koltso-porshnya-79-5-largus-logan-sandero-16kl-herzog-komplekt-hlr-0795-1050893646/',
-        'x-o3-manifest-version': 'default:2edc387816a6ce6f57aa58877f6757d911679799,ozonid:53166513c6cc1909d8ec8245e945a3a6656aa523,rpProduct:3b7c3a4854388f3cedfb84a31ebb41b920508b92,b2b:53166513c6cc1909d8ec8245e945a3a6656aa523,common:53166513c6cc1909d8ec8245e945a3a6656aa523,catalog:3b7c3a4854388f3cedfb84a31ebb41b920508b92,marketing:ca04f0c70c340a50f63cd70b6c783403042defe9,cms:3b7c3a4854388f3cedfb84a31ebb41b920508b92,myProfile:53166513c6cc1909d8ec8245e945a3a6656aa523,csma:53166513c6cc1909d8ec8245e945a3a6656aa523,priceFeedback:53166513c6cc1909d8ec8245e945a3a6656aa523,products:350a60ec19837b3ebb7dbff2065fca2b309fc68e,marketingInfo:ca04f0c70c340a50f63cd70b6c783403042defe9,favorites:3b7c3a4854388f3cedfb84a31ebb41b920508b92,search:3b7c3a4854388f3cedfb84a31ebb41b920508b92,addressBookMap:d44afb258b858ee1d28caeb354765ad8e0925dee,cart:53166513c6cc1909d8ec8245e945a3a6656aa523',
-        'sec-ch-ua': '"Google Chrome";v="131", "Chromium";v="131", "Not_A Brand";v="24"',
-        'sec-ch-ua-mobile': '?0',
-        'x-o3-app-version': 'release_25-11-2024_2edc3878',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'x-o3-app-name': 'dweb_client',
-    }
-    params = {
-        'url': f"/product/{url.split('product/')[1]}"
-    }
-
-    page = requests.get('https://www.ozon.ru/api/entrypoint-api.bx/page/json/v2', params=params, headers=headers)
-    print(page)
-    bs = BeautifulSoup(page.text, "lxml")
-    json_data = bs.find('pre').text
-    print(json_data)
-    return json.loads(str(json_data))
+    pass
 
 
 def priceToINT(price):
