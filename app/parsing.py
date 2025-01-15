@@ -1,20 +1,17 @@
 import json
 import logging
-from bs4 import BeautifulSoup
-import requests
-from selenium import webdriver
-import seleniumbase as sb
-from selenium_stealth import stealth
-from seleniumbase import DriverContext
-from selenium.webdriver import EdgeOptions
-from selenium.webdriver import ChromeOptions
-from selenium.webdriver import FirefoxOptions
-from selenium import webdriver
-import undetected_chromedriver as uc
 import time
+
+import requests
+import undetected_chromedriver as uc
+from bs4 import BeautifulSoup
+from selenium import webdriver
+from selenium.webdriver import ChromeOptions
+from selenium.webdriver import EdgeOptions
+from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.common.by import By
+from selenium_stealth import stealth
 
 
 # https://jsonformatter.org/
@@ -70,8 +67,8 @@ async def ozon_parsing(url):
         try:
             price = price['cardPrice']
         except Exception as err:
-            mes = f" {url} Unexpected {err=}, {type(err)=}"
-            # print(mes)
+            mes = f"{url} Unexpected {err=}, {type(err)=}"
+            print(mes)
             price = price['price']
         price = priceToINT(price)
 
