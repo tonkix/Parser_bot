@@ -12,3 +12,4 @@ APScheduler~=3.10.4
 selenium~=4.23.1
 seleniumbase~=4.29.0
 selenium-stealth
+undetected_chromedriver
