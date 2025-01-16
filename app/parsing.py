@@ -1,42 +1,51 @@
 import json
 import logging
-from bs4 import BeautifulSoup
-import requests
-from selenium import webdriver
-import seleniumbase as sb
-from selenium_stealth import stealth
-from seleniumbase import DriverContext
-from selenium.webdriver import EdgeOptions
-from selenium.webdriver import ChromeOptions
-from selenium.webdriver import FirefoxOptions
-from selenium import webdriver
-import undetected_chromedriver as uc
 import time
+
+import requests
+import undetected_chromedriver as uc
+from bs4 import BeautifulSoup
+from selenium import webdriver
+from selenium.webdriver import ChromeOptions
+from selenium.webdriver import EdgeOptions
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as ec
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium_stealth import stealth
 
 
 # https://jsonformatter.org/
 def get_ozon_json(url):
-
-    json_url = url.split('product/')[1]
-    json_url = f"https://www.ozon.ru/api/entrypoint-api.bx/page/json/v2?url=%2Fproduct%2F{json_url}"
-    # print(json_url)
+    # start = time.perf_counter()
+    json_url = f"https://www.ozon.ru/api/entrypoint-api.bx/page/json/v2?url=%2Fproduct%2F{url.split('product/')[1]}"
 
     driver = uc.Chrome(headless=True, use_subprocess=False)
+    # print(f"Ссылка заняла {time.perf_counter() - start:0.4f} секунд")
     stealth(driver,
             languages=["ru-RU", "ru"],
             vendor="Google Inc.",
             platform="Win64",
             webgl_vendor="Intel Inc.",
             renderer="Intel Iris OpenGL Engine",
-            fix_hairline=True,
-            wait=webdriver.Chrome.implicitly_wait(driver, 100.00))
+            fix_hairline=True)
+
     driver.get(json_url)
-    time.sleep(5)
+    try:
+        element = WebDriverWait(driver, 5).until(
+            ec.presence_of_element_located((By.TAG_NAME, "pre"))
+        )
+    except TimeoutError:
+        driver.quit()
+    # print(f"Ссылка заняла {time.perf_counter() - start:0.4f} секунд")
     generated_html = driver.page_source
     bs = BeautifulSoup(generated_html, "html.parser")
     json_data = bs.find('pre').text
     driver.quit()
     return json.loads(str(json_data))
+
+
+def get_fast_ozon_json(url):
+    pass
 
 
 def priceToINT(price):
@@ -50,6 +59,7 @@ def priceToINT(price):
 async def ozon_parsing(url):
     try:
         parsed_data = get_ozon_json(url)
+        # parsed_data = get_fast_ozon_json(url)
         temp_data = parsed_data['widgetStates']
 
         price_data = temp_data['webPrice-3121879-default-1']
@@ -57,8 +67,8 @@ async def ozon_parsing(url):
         try:
             price = price['cardPrice']
         except Exception as err:
-            mes = f" {url} Unexpected {err=}, {type(err)=}"
-            # print(mes)
+            mes = f"{url} Unexpected {err=}, {type(err)=}"
+            print(mes)
             price = price['price']
         price = priceToINT(price)
 
