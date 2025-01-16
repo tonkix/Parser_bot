@@ -6,6 +6,8 @@
       <excludeFolder url="file://$MODULE_DIR$/venv_parser" />
       <excludeFolder url="file://$MODULE_DIR$/build" />
       <excludeFolder url="file://$MODULE_DIR$/dist" />
+      <excludeFolder url="file://$MODULE_DIR$/input_data" />
+      <excludeFolder url="file://$MODULE_DIR$/output_data" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
