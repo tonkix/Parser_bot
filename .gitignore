@@ -159,16 +159,6 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 .idea/
 
-/input_data
-/output_data
-/import_data
-input_data/
-output_data/
-import_data/
-
-*.xlsm
-*.xlsx
-*.xls
-
-input_data/input.xlsm
-output_data/output.xlsx
+import_data
+input_data
+output_data
