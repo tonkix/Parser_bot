@@ -1,8 +1,8 @@
 import json
 import logging
 import time
-
 import requests
+import urllib3
 import undetected_chromedriver as uc
 from bs4 import BeautifulSoup
 from selenium import webdriver
@@ -84,6 +84,7 @@ async def ozon_parsing(url):
 
 async def motorring_parsing(url):
     try:
+        urllib3.disable_warnings()
         page = requests.get(url, verify=False)
         bs = BeautifulSoup(page.text, "lxml")
         price = priceToINT(bs.find('span', id='e-curr-price').text)

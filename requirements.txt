@@ -14,3 +14,4 @@ seleniumbase
 selenium-stealth
 undetected_chromedriver
 webdriver-manager
+urllib3
