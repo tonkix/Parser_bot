@@ -27,7 +27,8 @@ def get_ozon_json(url):
             platform="Win64",
             webgl_vendor="Intel Inc.",
             renderer="Intel Iris OpenGL Engine",
-            fix_hairline=True)
+            fix_hairline=True,
+            )
 
     driver.get(json_url)
     try:
@@ -35,6 +36,7 @@ def get_ozon_json(url):
             ec.presence_of_element_located((By.TAG_NAME, "pre"))
         )
     except TimeoutError:
+        print("вылет")
         driver.quit()
     # print(f"Ссылка заняла {time.perf_counter() - start:0.4f} секунд")
     generated_html = driver.page_source
