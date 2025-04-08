@@ -115,6 +115,7 @@ async def timeturbo_parsing(url):
 
 async def sport33_parsing(url):
     try:
+        urllib3.disable_warnings()
         page = requests.get(url, verify=False)
         bs = BeautifulSoup(page.text, "lxml")
         price = priceToINT(bs.find('span', class_='priceVal').text)
