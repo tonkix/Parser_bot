@@ -89,8 +89,21 @@ async def motorring_parsing(url):
         urllib3.disable_warnings()
         page = requests.get(url, verify=False)
         bs = BeautifulSoup(page.text, "lxml")
-        price = priceToINT(bs.find('span', id='e-curr-price').text)
-        name = (bs.find('h1', class_='text_title m0 p0').text
+        price = priceToINT(bs.find('span', itemprop='price').text)
+        name = (bs.find('h1', itemprop='name').text
+                .strip())
+        return {"price": price, "name": name}
+    except Exception as err:
+        mes = f"{url} Unexpected {err=}, {type(err)=}"
+        print(mes)
+        logging.error(mes)
+
+    try:
+        urllib3.disable_warnings()
+        page = requests.get(url, verify=False)
+        bs = BeautifulSoup(page.text, "lxml")
+        price = priceToINT(bs.find('span', class_='current__price').text)
+        name = (bs.find('h1', class_='title__head').text
                 .strip())
         return {"price": price, "name": name}
     except Exception as err:
@@ -119,7 +132,7 @@ async def sport33_parsing(url):
         page = requests.get(url, verify=False)
         bs = BeautifulSoup(page.text, "lxml")
         price = priceToINT(bs.find('span', class_='priceVal').text)
-        name = (bs.find('h1', '').text
+        name = (bs.find('h1').text
                 .strip())
         return {"price": price, "name": name}
     except Exception as err:
@@ -210,7 +223,7 @@ async def avt_tuning_parsing(url):
         bs = BeautifulSoup(page.text, "lxml")
         price = bs.find('span', class_='item_price').text
         price = priceToINT(price)
-        name = (bs.find('h2', '').text
+        name = (bs.find('h2').text
                 .strip())
         return {"price": price, "name": name}
     except Exception as err:
