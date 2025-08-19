@@ -84,6 +84,51 @@ async def ozon_parsing(url):
         logging.error(mes)
 
 
+async def alphardaudio_parsing(url):
+    try:
+        driver = uc.Chrome(headless=True, use_subprocess=False)
+        # print(f"Ссылка заняла {time.perf_counter() - start:0.4f} секунд")
+        stealth(driver,
+                languages=["ru-RU", "ru"],
+                vendor="Google Inc.",
+                platform="Win64",
+                webgl_vendor="Intel Inc.",
+                renderer="Intel Iris OpenGL Engine",
+                fix_hairline=True,
+                )
+
+        driver.get(url)
+        # driver.implicitly_wait(10)
+        generated_html = driver.page_source
+        driver.quit()
+
+        bs = BeautifulSoup(generated_html, 'html.parser')
+        price = bs.find('div', class_='modification_price').find('span').text
+        price = priceToINT(price)
+        name = (bs.find('h1', class_='h3').text
+                .strip())
+        return {"price": price, "name": name}
+    except Exception as err:
+        mes = f"{url} Unexpected {err=}, {type(err)=}"
+        print(mes)
+        logging.error(mes)
+
+
+async def loudsound_parsing(url):
+    try:
+        page = requests.get(url)
+        bs = BeautifulSoup(page.text, "lxml")
+        price = bs.find('span', itemprop='price').text
+        price = priceToINT(price)
+        name = (bs.find('h1', itemprop='name').text
+                .strip())
+        return {"price": price, "name": name}
+    except Exception as err:
+        mes = f"{url} Unexpected {err=}, {type(err)=}"
+        print(mes)
+        logging.error(mes)
+
+
 async def motorring_parsing(url):
     try:
         urllib3.disable_warnings()
@@ -299,21 +344,6 @@ async def shop_bear_parsing(url):
         price = bs.find('span', class_='price_value').text
         price = priceToINT(price)
         name = (bs.find('h1', id='pagetitle').text
-                .strip())
-        return {"price": price, "name": name}
-    except Exception as err:
-        mes = f"{url} Unexpected {err=}, {type(err)=}"
-        print(mes)
-        logging.error(mes)
-
-
-async def loudsound_parsing(url):
-    try:
-        page = requests.get(url)
-        bs = BeautifulSoup(page.text, "lxml")
-        price = bs.find('span', itemprop='price').text
-        price = priceToINT(price)
-        name = (bs.find('h1', itemprop='name').text
                 .strip())
         return {"price": price, "name": name}
     except Exception as err:
@@ -549,30 +579,6 @@ async def bibi_parsing(url):
         mes = f"{url} Unexpected {err=}, {type(err)=}"
         print(mes)
         logging.error(mes)
-
-
-async def alphardaudio_parsing(url):
-    try:
-        options = EdgeOptions()
-        options.add_argument("--headless=true")
-        driver = webdriver.Edge(options=options)
-
-        driver.get(url)
-        # driver.implicitly_wait(10)
-        generated_html = driver.page_source
-        driver.quit()
-
-        bs = BeautifulSoup(generated_html, 'html.parser')
-        price = bs.find('div', class_='modification_price').find('span').text
-        price = priceToINT(price)
-        name = (bs.find('h1', class_='h3').text
-                .strip())
-        return {"price": price, "name": name}
-    except Exception as err:
-        mes = f"{url} Unexpected {err=}, {type(err)=}"
-        print(mes)
-        logging.error(mes)
-
 
 async def avito_parsing(url):
     try:
