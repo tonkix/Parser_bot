@@ -263,6 +263,7 @@ async def add_tt_products(data: Workbook):
                                  retail_price=retail_price)
 
 
+# ловит файл и делает парсинг по ссылкам в файле
 @router.message(F.content_type == ContentType.DOCUMENT)
 async def get_doc(message: Message, bot: Bot):
     await rq.set_user(tg_id=message.from_user.id,
@@ -303,6 +304,7 @@ async def get_doc(message: Message, bot: Bot):
     )
 
 
+# Поиск товара
 async def find_products(text):
     logging.info("Поиск по ID")
     products = await rq.get_product_by_tt_id(text.split(' ')[0])
