@@ -46,10 +46,6 @@ def get_ozon_json(url):
     return json.loads(str(json_data))
 
 
-def get_fast_ozon_json(url):
-    pass
-
-
 def priceToINT(price):
     try:
         price = "".join(filter(str.isdigit, price))
@@ -130,19 +126,6 @@ async def loudsound_parsing(url):
 
 
 async def motorring_parsing(url):
-    ''' Старый сайт
-    try:
-        urllib3.disable_warnings()
-        page = requests.get(url, verify=False)
-        bs = BeautifulSoup(page.text, "lxml")
-        price = priceToINT(bs.find('span', itemprop='price').text)
-        name = (bs.find('h1', itemprop='name').text
-                .strip())
-        return {"price": price, "name": name}
-    except Exception as err:
-        mes = f"{url} Unexpected {err=}, {type(err)=}"
-        print(mes)
-        logging.error(mes)'''
     try:
         urllib3.disable_warnings()
         page = requests.get(url, verify=False)
