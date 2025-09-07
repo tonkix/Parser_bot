@@ -161,13 +161,11 @@ async def cmd_backup(message: Message):
     logging.info('Запрос backup_db')
     user = await rq.get_user_by_tg(message.from_user.id)
     if user.role == 99:
-        await message.reply_document(
-            document=FSInputFile(
-                path='db.sqlite3',
-                filename='backup_db.sqlite3',
-            ),
-        )
         logging.info('Запрос backup_db - пользователь принят')
+
+        # не отправляет файл, пишет слишком большой
+        document = FSInputFile(path='db.sqlite3', filename='backup_db.sqlite3')
+        await message.reply_document(document=document)
     else:
         logging.error('Запрос backup_db - не прошла проверка пользователя')
 
@@ -321,6 +319,7 @@ async def find_products(text):
 
 
 # @router.message(F.text.contains('товар'))
+# ловит любое сообщение, которое не прошло фильтры выше
 @router.message()
 async def get_links(message: Message):
     products = await find_products(message.text)

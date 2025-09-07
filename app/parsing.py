@@ -130,6 +130,7 @@ async def loudsound_parsing(url):
 
 
 async def motorring_parsing(url):
+    ''' Старый сайт
     try:
         urllib3.disable_warnings()
         page = requests.get(url, verify=False)
@@ -141,8 +142,7 @@ async def motorring_parsing(url):
     except Exception as err:
         mes = f"{url} Unexpected {err=}, {type(err)=}"
         print(mes)
-        logging.error(mes)
-
+        logging.error(mes)'''
     try:
         urllib3.disable_warnings()
         page = requests.get(url, verify=False)
