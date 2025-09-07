@@ -2,8 +2,8 @@ import logging
 import openpyxl
 from aiogram import F, Bot, Router
 from aiogram.enums import ContentType
-from aiogram.types import Message, CallbackQuery, FSInputFile
-from aiogram.filters import CommandStart, Command
+from aiogram.types import Message, FSInputFile
+from aiogram.filters import Command
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 from dotenv import load_dotenv
