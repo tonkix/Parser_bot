@@ -2,6 +2,7 @@ import logging
 import app.parsing as pars
 
 
+# парсинг списка ссылок
 async def parsing(uniq_url_list, ws):
     logging.info('Parsing started')
     output_list = list()
@@ -27,6 +28,7 @@ async def parsing(uniq_url_list, ws):
     return output_list
 
 
+# парсинг одной ссылки
 async def parsing_one(url):
     logging.info('Parsing started')
     price = ''
