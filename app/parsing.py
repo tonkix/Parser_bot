@@ -7,7 +7,6 @@ import undetected_chromedriver as uc
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver import ChromeOptions
-from selenium.webdriver import EdgeOptions
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
@@ -17,6 +16,7 @@ from selenium_stealth import stealth
 # https://jsonformatter.org/
 def get_ozon_json(url):
     # start = time.perf_counter()
+    url = url.split('?')[0]
     json_url = f"https://www.ozon.ru/api/entrypoint-api.bx/page/json/v2?url=%2Fproduct%2F{url.split('product/')[1]}"
 
     driver = uc.Chrome(headless=True, use_subprocess=False)

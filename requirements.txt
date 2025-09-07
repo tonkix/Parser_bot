@@ -12,6 +12,6 @@ APScheduler
 selenium
 seleniumbase
 selenium-stealth
-undetected_chromedriver
+undetected-chromedriver
 webdriver-manager
 urllib3
