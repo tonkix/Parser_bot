@@ -13,13 +13,13 @@ async def parsing(uniq_url_list, ws):
             except Exception as err:
                 mes = (f"[ERROR] {url} Unexpected {err=}, {type(err)=}\n" +
                        str(uniq_url_list.index(url) + 1) + " of " + str(len(uniq_url_list)) + f" // [ERROR]\n"
-                       f"--------------------------------------------------------------------------\n")
+                       f"--------------------------------------------------------------------------")
                 print(mes)
                 logging.error(mes)
                 continue
             mes = (str(uniq_url_list.index(url) + 1) + " of " + str(len(uniq_url_list)) +
                    f" // [OK]\n"
-                   f"--------------------------------------------------------------------------\n")
+                   f"--------------------------------------------------------------------------")
             print(mes)
             logging.info(mes)
 
@@ -50,6 +50,11 @@ async def parsing_one(url):
 
         elif "33sport.ru" in url:
             result = await pars.sport33_parsing(url)
+            price = result['price']
+            name = result['name']
+
+        elif "autoproduct.biz" in url:
+            result = await pars.autoproduct_parsing(url)
             price = result['price']
             name = result['name']
 

@@ -180,6 +180,21 @@ async def motorring_parsing(url):
         logging.error(mes)
 
 
+async def autoproduct_parsing(url):
+    try:
+        urllib3.disable_warnings()
+        page = requests.get(url, verify=False)
+        bs = BeautifulSoup(page.text, "lxml")
+        price = priceToINT(bs.find('div', class_='price').text)
+        name = (bs.find('h2', class_='title').text
+                .strip())
+        return {"price": price, "name": name}
+    except Exception as err:
+        mes = f"{url} Unexpected {err=}, {type(err)=}"
+        print(mes)
+        logging.error(mes)
+
+
 async def timeturbo_parsing(url):
     try:
         page = requests.get(url, verify=False)
