@@ -130,8 +130,14 @@ async def motorring_parsing(url):
         urllib3.disable_warnings()
         page = requests.get(url, verify=False)
         bs = BeautifulSoup(page.text, "lxml")
-        price = priceToINT(bs.find('span', class_='current__price').text)
-        name = (bs.find('h1', class_='title__head').text
+
+        # новый
+        # price = priceToINT(bs.find('span', class_='current__price').text)
+        # name = (bs.find('h1', class_='title__head').text
+
+        # старый
+        price = priceToINT(bs.find('span', id='e-curr-price').text)
+        name = (bs.find('h1', class_='text_title m0 p0').text
                 .strip())
         return {"price": price, "name": name}
     except Exception as err:
