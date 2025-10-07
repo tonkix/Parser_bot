@@ -104,8 +104,8 @@ async def Work_With_File(data: Workbook):
                               name=data[1],
                               price=data[2])
         except Exception as err:
-            mes = f"Unexpected {err=}, {type(err)=}"
-            print(mes)
+            mes = f"[ERROR] Unexpected {err=}, {type(err)=}"
+            # print(mes)
             logging.error(mes)
 
     return wb

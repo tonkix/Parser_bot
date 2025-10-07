@@ -1,8 +1,11 @@
 import json
 import logging
+import subprocess
+import sys
 import time
 import requests
 import urllib3
+import random
 import undetected_chromedriver as uc
 from bs4 import BeautifulSoup
 from selenium import webdriver
@@ -13,12 +16,47 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium_stealth import stealth
 
 
+def get_chrome_version():
+    """Получает версию установленного Chrome"""
+    try:
+        result = subprocess.run([
+            'reg', 'query',
+            'HKEY_CURRENT_USER\\Software\\Google\\Chrome\\BLBeacon',
+            '/v', 'version'
+        ], capture_output=True, text=True, shell=True)
+
+        if result.returncode == 0:
+            version_line = [line for line in result.stdout.split('\n') if 'version' in line]
+            if version_line:
+                version = version_line[0].split()[-1]
+                print(f'[INFO] Обнаружена версия Chrome: {version}')
+                return version
+    except Exception as e:
+        print(f'[!] Не удалось определить версию Chrome: {e}')
+
+    return None
+
+
+def update_chromedriver():
+    """Обновляет ChromeDriver до последней версии"""
+    try:
+        print('[INFO] Обновляю ChromeDriver...')
+        subprocess.run([sys.executable, '-m', 'pip', 'install', '--upgrade', 'undetected-chromedriver'],
+                       check=True, capture_output=True, text=True)
+        print('[+] ChromeDriver успешно обновлён')
+        return True
+    except subprocess.CalledProcessError as e:
+        print(f'[!] Ошибка при обновлении ChromeDriver: {e}')
+        return False
+
+
 # https://jsonformatter.org/
 def get_ozon_json(url):
     # start = time.perf_counter()
     url = url.split('?')[0]
     json_url = f"https://www.ozon.ru/api/entrypoint-api.bx/page/json/v2?url=%2Fproduct%2F{url.split('product/')[1]}"
 
+    # print('[INFO] Пробую undetected_chromedriver...')
     driver = uc.Chrome(headless=True, use_subprocess=False)
     # print(f"Ссылка заняла {time.perf_counter() - start:0.4f} секунд")
     stealth(driver,
@@ -30,14 +68,10 @@ def get_ozon_json(url):
             fix_hairline=True,
             )
 
+    driver.implicitly_wait(10)
+    wait = WebDriverWait(driver, 10)
+
     driver.get(json_url)
-    try:
-        element = WebDriverWait(driver, 5).until(
-            ec.presence_of_element_located((By.TAG_NAME, "pre"))
-        )
-    except TimeoutError:
-        print("вылет")
-        driver.quit()
     # print(f"Ссылка заняла {time.perf_counter() - start:0.4f} секунд")
     generated_html = driver.page_source
     bs = BeautifulSoup(generated_html, "html.parser")
@@ -65,7 +99,7 @@ async def ozon_parsing(url):
         try:
             price = price['cardPrice']
         except Exception as err:
-            mes = f"{url} Unexpected {err=}, {type(err)=}"
+            mes = f"[ERROR] {url} Unexpected {err=}, {type(err)=}"
             print(mes)
             price = price['price']
         price = priceToINT(price)
@@ -75,7 +109,7 @@ async def ozon_parsing(url):
         name = name['name']
         return {"price": price, "name": name}
     except Exception as err:
-        mes = f"{url} Unexpected {err=}, {type(err)=}"
+        mes = f"[ERROR] {url} Unexpected {err=}, {type(err)=}"
         print(mes)
         logging.error(mes)
 
@@ -568,6 +602,7 @@ async def bibi_parsing(url):
         mes = f"{url} Unexpected {err=}, {type(err)=}"
         print(mes)
         logging.error(mes)
+
 
 async def avito_parsing(url):
     try:
