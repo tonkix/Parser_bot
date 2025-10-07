@@ -185,7 +185,8 @@ async def autoproduct_parsing(url):
         urllib3.disable_warnings()
         page = requests.get(url, verify=False)
         bs = BeautifulSoup(page.text, "lxml")
-        price = priceToINT(bs.find('div', class_='price').text)
+        price = priceToINT(bs.find('div', class_='product-main__right-block')
+                           .find('div', class_='price').find('span').text)
         name = (bs.find('h2', class_='title').text
                 .strip())
         return {"price": price, "name": name}
