@@ -6,6 +6,7 @@ import time
 import requests
 import urllib3
 import undetected_chromedriver as uc
+from selenium.common import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 from bs4 import BeautifulSoup
@@ -63,10 +64,17 @@ def get_ozon_json(url):
             platform="Win64",
             webgl_vendor="Intel Inc.",
             renderer="Intel Iris OpenGL Engine",
-            fix_hairline=True)
+            fix_hairline=True,
+            )
 
-    driver.implicitly_wait(10)
-    wait = WebDriverWait(driver, 10)
+    driver.get(json_url)
+    try:
+        element = WebDriverWait(driver, 5).until(
+            ec.presence_of_element_located((By.TAG_NAME, "pre"))
+        )
+    except TimeoutException:
+        print("[ERROR] Тайм-аут")
+        driver.quit()
 
     driver.get(json_url)
     # print(f"Ссылка заняла {time.perf_counter() - start:0.4f} секунд")
