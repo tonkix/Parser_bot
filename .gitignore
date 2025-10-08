@@ -162,6 +162,7 @@ cython_debug/
 import_data/
 input_data/
 output_data/
+.idea/
 
 .ozon_html.txt
 logs.log
