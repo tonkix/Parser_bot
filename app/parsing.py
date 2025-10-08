@@ -5,13 +5,12 @@ import sys
 import time
 import requests
 import urllib3
-import random
 import undetected_chromedriver as uc
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as ec
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver import ChromeOptions
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium_stealth import stealth
 
@@ -56,7 +55,6 @@ def get_ozon_json(url):
     url = url.split('?')[0]
     json_url = f"https://www.ozon.ru/api/entrypoint-api.bx/page/json/v2?url=%2Fproduct%2F{url.split('product/')[1]}"
 
-    # print('[INFO] Пробую undetected_chromedriver...')
     driver = uc.Chrome(headless=True, use_subprocess=False)
     # print(f"Ссылка заняла {time.perf_counter() - start:0.4f} секунд")
     stealth(driver,
@@ -65,8 +63,7 @@ def get_ozon_json(url):
             platform="Win64",
             webgl_vendor="Intel Inc.",
             renderer="Intel Iris OpenGL Engine",
-            fix_hairline=True,
-            )
+            fix_hairline=True)
 
     driver.implicitly_wait(10)
     wait = WebDriverWait(driver, 10)
@@ -74,9 +71,14 @@ def get_ozon_json(url):
     driver.get(json_url)
     # print(f"Ссылка заняла {time.perf_counter() - start:0.4f} секунд")
     generated_html = driver.page_source
+
+    with open("ozon_html.txt", "w", encoding="utf-8") as f:
+        f.write(generated_html)
+
     bs = BeautifulSoup(generated_html, "html.parser")
     json_data = bs.find('pre').text
     driver.quit()
+
     return json.loads(str(json_data))
 
 
