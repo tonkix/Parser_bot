@@ -80,8 +80,8 @@ def get_ozon_json(url):
     # print(f"Ссылка заняла {time.perf_counter() - start:0.4f} секунд")
     generated_html = driver.page_source
 
-    with open("ozon_html.txt", "w", encoding="utf-8") as f:
-        f.write(generated_html)
+    '''with open(".ozon_html.txt", "w", encoding="utf-8") as f:
+        f.write(generated_html)'''
 
     bs = BeautifulSoup(generated_html, "html.parser")
     json_data = bs.find('pre').text
