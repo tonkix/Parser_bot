@@ -185,7 +185,7 @@ async def motorring_parsing(url):
                 .strip())
         return {"price": price, "name": name}
     except Exception as err:
-        mes = f"{url} Unexpected {err=}, {type(err)=}"
+        mes = f"[ERROR] {url} Unexpected {err=}, {type(err)=}"
         print(mes)
         logging.error(mes)
 
@@ -201,7 +201,22 @@ async def autoproduct_parsing(url):
                 .strip())
         return {"price": price, "name": name}
     except Exception as err:
-        mes = f"{url} Unexpected {err=}, {type(err)=}"
+        mes = f"[ERROR] {url} Unexpected {err=}, {type(err)=}"
+        print(mes)
+        logging.error(mes)
+
+
+async def lecar_parsing(url):
+    try:
+        urllib3.disable_warnings()
+        page = requests.get(url, verify=False)
+        bs = BeautifulSoup(page.text, "lxml")
+        price = priceToINT(bs.find('div', class_='OfferCart_price__2PerE').text)
+        name = (bs.find('h1', class_='title_title__V0fDu ewddmpm3 css-1kg7k5a e1kw2ndg0').text
+                .strip())
+        return {"price": price, "name": name}
+    except Exception as err:
+        mes = f"[ERROR] {url} Unexpected {err=}, {type(err)=}"
         print(mes)
         logging.error(mes)
 

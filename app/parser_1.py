@@ -58,6 +58,11 @@ async def parsing_one(url):
             price = result['price']
             name = result['name']
 
+        elif "lecar.ru" in url:
+            result = await pars.lecar_parsing(url)
+            price = result['price']
+            name = result['name']
+
         elif "mag.demfi.ru" in url:
             result = await pars.mag_demfi_parsing(url)
             price = result['price']

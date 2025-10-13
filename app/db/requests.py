@@ -1,8 +1,13 @@
+import os
 import logging
 from app.db.models import async_session
 from app.db.models import User, Product, Link
 from sqlalchemy import select
 from datetime import datetime
+from dotenv import load_dotenv
+
+load_dotenv()
+MASTER_PASSWORD = os.getenv("MASTER_PASSWORD")
 
 
 async def set_user(tg_id: int, firstname, lastname, subscribed, role=1):
@@ -19,7 +24,7 @@ async def set_user(tg_id: int, firstname, lastname, subscribed, role=1):
 
 
 async def check_password(password):
-    return password == '41802967'
+    return password == MASTER_PASSWORD
 
 
 async def get_user_by_tg(tg_id: int):
