@@ -304,16 +304,16 @@ async def get_doc(message: Message, bot: Bot):
 
 # Поиск товара
 async def find_products(text):
-    logging.info("Поиск по ID")
+    logging.info("[INFO] Поиск по ID")
     products = await rq.get_product_by_tt_id(text.split(' ')[0])
     if len(list(products)) == 0:
-        logging.info("Поиск по коду")
+        logging.info("[INFO] Поиск по коду")
         products = await rq.get_product_by_tt_code(text.split(' ')[0])
         if len(list(products)) == 0:
-            logging.info("Поиск по ссылке")
+            logging.info("[INFO] Поиск по ссылке")
             products = await rq.get_products_by_link(text)
             if len(list(products)) == 0:
-                logging.info("Поиск по названию")
+                logging.info("[INFO] Поиск по названию")
                 products = await rq.get_products_by_name(text)
     return products
 
@@ -324,8 +324,8 @@ async def find_products(text):
 async def get_links(message: Message):
     products = await find_products(message.text)
     for product in products:
-        logging.info("Перебор")
-        print("Перебор")
+        logging.info("[INFO] Поиск")
+        print("[INFO] Поиск")
         if product is not None:
             await message.answer(text="Найден товар",
                                  disable_notification=True,
