@@ -101,7 +101,7 @@ async def get_products_by_link(url):
 
 
 async def get_products_by_name(name):
-    '''async with async_session() as session:
+    """async with async_session() as session:
         name = name.lower().split(' ')
         print(name)
         out_product = list()
@@ -111,7 +111,7 @@ async def get_products_by_name(name):
             # products = products_tt.all().scalars(select(Product).where(Product.name.contains(word)))
         for p in products:
             print(p.name)
-        return products_tt'''
+        return products_tt"""
     print('[INFO] ищу по NAME')
 
 

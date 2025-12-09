@@ -5,10 +5,7 @@ import sys
 import time
 import requests
 import urllib3
-import os
 import undetected_chromedriver as uc
-from fake_useragent import UserAgent
-from selenium.webdriver.chrome.options import Options
 from selenium.common import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
@@ -19,38 +16,12 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium_stealth import stealth
 
 
-def get_chrome_version():
-    """Получает версию установленного Chrome"""
+def priceToINT(price):
     try:
-        result = subprocess.run([
-            'reg', 'query',
-            'HKEY_CURRENT_USER\\Software\\Google\\Chrome\\BLBeacon',
-            '/v', 'version'
-        ], capture_output=True, text=True, shell=True)
-
-        if result.returncode == 0:
-            version_line = [line for line in result.stdout.split('\n') if 'version' in line]
-            if version_line:
-                version = version_line[0].split()[-1]
-                print(f'[INFO] Обнаружена версия Chrome: {version}')
-                return version
-    except Exception as e:
-        print(f'[!] Не удалось определить версию Chrome: {e}')
-
-    return None
-
-
-def update_chromedriver():
-    """Обновляет ChromeDriver до последней версии"""
-    try:
-        print('[INFO] Обновляю ChromeDriver...')
-        subprocess.run([sys.executable, '-m', 'pip', 'install', '--upgrade', 'undetected-chromedriver'],
-                       check=True, capture_output=True, text=True)
-        print('[+] ChromeDriver успешно обновлён')
-        return True
-    except subprocess.CalledProcessError as e:
-        print(f'[!] Ошибка при обновлении ChromeDriver: {e}')
-        return False
+        price = "".join(filter(str.isdigit, price))
+        return int(price)
+    except ValueError:
+        return price
 
 
 # https://jsonformatter.org/
@@ -90,15 +61,7 @@ def get_ozon_json(url):
     return json.loads(str(json_data))
 
 
-def priceToINT(price):
-    try:
-        price = "".join(filter(str.isdigit, price))
-        return int(price)
-    except ValueError:
-        return price
-
-
-async def ozon_parsing(url):
+def ozon_parsing(url):
     try:
         parsed_data = get_ozon_json(url)
         # parsed_data = get_fast_ozon_json(url)
@@ -169,8 +132,7 @@ async def loudsound_parsing(url):
         logging.error(mes)
 
 
-async def motorring_parsing(url):
-    bs = ""
+def motorring_parsing(url):
     try:
         urllib3.disable_warnings()
         from curl_cffi import requests
