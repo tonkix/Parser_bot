@@ -12,13 +12,13 @@ async def parsing(uniq_url_list, ws):
                 result = await parsing_one(url)
             except Exception as err:
                 mes = (f"[ERROR] {url} Unexpected {err=}, {type(err)=}\n" +
-                       str(uniq_url_list.index(url) + 1) + " of " + str(len(uniq_url_list)) + f" // [ERROR]\n"
+                       f"[ERROR] " + str(uniq_url_list.index(url) + 1) + " of " + str(len(uniq_url_list)) + f"\n"
                        f"--------------------------------------------------------------------------")
                 print(mes)
                 logging.error(mes)
                 continue
-            mes = (str(uniq_url_list.index(url) + 1) + " of " + str(len(uniq_url_list)) +
-                   f" // [OK]\n"
+            mes = (f"[OK] " + str(uniq_url_list.index(url) + 1) + " of " + str(len(uniq_url_list)) +
+                   f"\n"
                    f"--------------------------------------------------------------------------")
             print(mes)
             logging.info(mes)

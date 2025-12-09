@@ -5,7 +5,10 @@ import sys
 import time
 import requests
 import urllib3
+import os
 import undetected_chromedriver as uc
+from fake_useragent import UserAgent
+from selenium.webdriver.chrome.options import Options
 from selenium.common import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
@@ -79,9 +82,6 @@ def get_ozon_json(url):
     driver.get(json_url)
     # print(f"Ссылка заняла {time.perf_counter() - start:0.4f} секунд")
     generated_html = driver.page_source
-
-    '''with open(".ozon_html.txt", "w", encoding="utf-8") as f:
-        f.write(generated_html)'''
 
     bs = BeautifulSoup(generated_html, "html.parser")
     json_data = bs.find('pre').text
@@ -170,9 +170,24 @@ async def loudsound_parsing(url):
 
 
 async def motorring_parsing(url):
+    bs = ""
     try:
         urllib3.disable_warnings()
-        page = requests.get(url, verify=False)
+        from curl_cffi import requests
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
+                          'Chrome/141.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
+            'Accept-Encoding': 'none',
+            'Accept-Language': 'en-US,en;q=0.8',
+            'cookie': 'PHPSESSID=455be602b61b30e47be0a2188c6fda1a; __ddgid_=XwSi5UyiCLtGmNNt; '
+                      '__ddgmark_=QiPdyGLwJAXwReHB; __ddg2_=NlXqiRbhPF4ODIlu; __ddg1_=oaKXEHc7AsNulzdZe3ji; '
+                      'page_state=[{"id":"164","page":"0","is_filter":true}]; __ddg9_=80.234.92.236; '
+                      '__ddg5_=HNHXgARPfXYXoyzH; __ddg10_=1760434223; __ddg8_=kmt9syEdBxjxb9wv',
+            'Connection': 'keep-alive'}
+
+        page = requests.get(url, verify=False, impersonate="safari", headers=headers)
         bs = BeautifulSoup(page.text, "lxml")
 
         # новый
@@ -181,11 +196,12 @@ async def motorring_parsing(url):
 
         # старый
         price = priceToINT(bs.find('span', id='e-curr-price').text)
-        name = (bs.find('h1', class_='text_title m0 p0').text
+        name = (bs.find('h1', id='e-name').text
                 .strip())
         return {"price": price, "name": name}
     except Exception as err:
         mes = f"[ERROR] {url} Unexpected {err=}, {type(err)=}"
+        # print(bs)
         print(mes)
         logging.error(mes)
 
