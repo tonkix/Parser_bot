@@ -25,12 +25,12 @@ def priceToINT(price):
 
 
 # https://jsonformatter.org/
-def get_ozon_json(url):
+def get_ozon_json(url, driver):
     # start = time.perf_counter()
     url = url.split('?')[0]
     json_url = f"https://www.ozon.ru/api/entrypoint-api.bx/page/json/v2?url=%2Fproduct%2F{url.split('product/')[1]}"
 
-    driver = uc.Chrome(headless=True, use_subprocess=False)
+    # driver = uc.Chrome(headless=True, use_subprocess=False)
     # print(f"Ссылка заняла {time.perf_counter() - start:0.4f} секунд")
     stealth(driver,
             languages=["ru-RU", "ru"],
@@ -49,8 +49,6 @@ def get_ozon_json(url):
     except TimeoutException:
         print("[ERROR] Тайм-аут")
         driver.quit()
-
-    driver.get(json_url)
     # print(f"Ссылка заняла {time.perf_counter() - start:0.4f} секунд")
     generated_html = driver.page_source
 
@@ -61,9 +59,9 @@ def get_ozon_json(url):
     return json.loads(str(json_data))
 
 
-def ozon_parsing(url):
+def ozon_parsing(url, driver):
     try:
-        parsed_data = get_ozon_json(url)
+        parsed_data = get_ozon_json(url, driver)
         # parsed_data = get_fast_ozon_json(url)
         temp_data = parsed_data['widgetStates']
 
@@ -87,7 +85,7 @@ def ozon_parsing(url):
         logging.error(mes)
 
 
-async def alphardaudio_parsing(url):
+def alphardaudio_parsing(url):
     try:
         driver = uc.Chrome(headless=True, use_subprocess=False)
         # print(f"Ссылка заняла {time.perf_counter() - start:0.4f} секунд")
@@ -117,7 +115,7 @@ async def alphardaudio_parsing(url):
         logging.error(mes)
 
 
-async def loudsound_parsing(url):
+def loudsound_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
@@ -168,7 +166,7 @@ def motorring_parsing(url):
         logging.error(mes)
 
 
-async def autoproduct_parsing(url):
+def autoproduct_parsing(url):
     try:
         urllib3.disable_warnings()
         page = requests.get(url, verify=False)
@@ -184,7 +182,7 @@ async def autoproduct_parsing(url):
         logging.error(mes)
 
 
-async def lecar_parsing(url):
+def lecar_parsing(url):
     try:
         urllib3.disable_warnings()
         page = requests.get(url, verify=False)
@@ -199,7 +197,7 @@ async def lecar_parsing(url):
         logging.error(mes)
 
 
-async def timeturbo_parsing(url):
+def timeturbo_parsing(url):
     try:
         page = requests.get(url, verify=False)
         bs = BeautifulSoup(page.text, "lxml")
@@ -213,7 +211,7 @@ async def timeturbo_parsing(url):
         logging.error(mes)
 
 
-async def sport33_parsing(url):
+def sport33_parsing(url):
     try:
         urllib3.disable_warnings()
         page = requests.get(url, verify=False)
@@ -228,7 +226,7 @@ async def sport33_parsing(url):
         logging.error(mes)
 
 
-async def mag_demfi_parsing(url):
+def mag_demfi_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
@@ -243,7 +241,7 @@ async def mag_demfi_parsing(url):
         logging.error(mes)
 
 
-async def aston_parsing(url):
+def aston_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
@@ -258,7 +256,7 @@ async def aston_parsing(url):
         logging.error(mes)
 
 
-async def prestigeltd_parsing(url):
+def prestigeltd_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
@@ -273,7 +271,7 @@ async def prestigeltd_parsing(url):
         logging.error(mes)
 
 
-async def store_starline_parsing(url):
+def store_starline_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
@@ -288,7 +286,7 @@ async def store_starline_parsing(url):
         logging.error(mes)
 
 
-async def starline_russia_parsing(url):
+def starline_russia_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
@@ -304,7 +302,7 @@ async def starline_russia_parsing(url):
         logging.error(mes)
 
 
-async def avt_tuning_parsing(url):
+def avt_tuning_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
@@ -319,7 +317,7 @@ async def avt_tuning_parsing(url):
         logging.error(mes)
 
 
-async def gearbox63_parsing(url):
+def gearbox63_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
@@ -334,7 +332,7 @@ async def gearbox63_parsing(url):
         logging.error(mes)
 
 
-async def avtoall_parsing(url):
+def avtoall_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
@@ -349,7 +347,7 @@ async def avtoall_parsing(url):
         logging.error(mes)
 
 
-async def xenon63_parsing(url):
+def xenon63_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
@@ -364,7 +362,7 @@ async def xenon63_parsing(url):
         logging.error(mes)
 
 
-async def tuningprosto_parsing(url):
+def tuningprosto_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
@@ -379,7 +377,7 @@ async def tuningprosto_parsing(url):
         logging.error(mes)
 
 
-async def shop_bear_parsing(url):
+def shop_bear_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
@@ -394,7 +392,7 @@ async def shop_bear_parsing(url):
         logging.error(mes)
 
 
-async def satox_parsing(url):
+def satox_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
@@ -409,7 +407,7 @@ async def satox_parsing(url):
         logging.error(mes)
 
 
-async def autodemic_parsing(url):
+def autodemic_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
@@ -424,7 +422,7 @@ async def autodemic_parsing(url):
         logging.error(mes)
 
 
-async def original_detal_parsing(url):
+def original_detal_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
@@ -439,7 +437,7 @@ async def original_detal_parsing(url):
         logging.error(mes)
 
 
-async def lada_online_parsing(url):
+def lada_online_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
@@ -454,7 +452,7 @@ async def lada_online_parsing(url):
         logging.error(mes)
 
 
-async def car_team_parsing(url):
+def car_team_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
@@ -469,7 +467,7 @@ async def car_team_parsing(url):
         logging.error(mes)
 
 
-async def nvs_car_parsing(url):
+def nvs_car_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
@@ -484,7 +482,7 @@ async def nvs_car_parsing(url):
         logging.error(mes)
 
 
-async def standart_detail_parsing(url):
+def standart_detail_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
@@ -499,7 +497,7 @@ async def standart_detail_parsing(url):
         logging.error(mes)
 
 
-async def avtozap_parsing(url):
+def avtozap_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
@@ -514,7 +512,7 @@ async def avtozap_parsing(url):
         logging.error(mes)
 
 
-async def lada_sport_parsing(url):
+def lada_sport_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
@@ -529,7 +527,7 @@ async def lada_sport_parsing(url):
         logging.error(mes)
 
 
-async def komponentavto_parsing(url):
+def komponentavto_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
@@ -544,7 +542,7 @@ async def komponentavto_parsing(url):
         logging.error(mes)
 
 
-async def rezkon_parsing(url):
+def rezkon_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
@@ -559,7 +557,7 @@ async def rezkon_parsing(url):
         logging.error(mes)
 
 
-async def salman_parsing(url):
+def salman_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
@@ -574,7 +572,7 @@ async def salman_parsing(url):
         logging.error(mes)
 
 
-async def ferrum_parsing(url):
+def ferrum_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
@@ -596,34 +594,7 @@ async def ferrum_parsing(url):
         logging.error(mes)
 
 
-# TODO не работает
-async def bibi_parsing(url):
-    try:
-        driver = uc.Chrome(headless=True, use_subprocess=False)
-        stealth(driver,
-                languages=["ru-RU", "ru"],
-                vendor="Google Inc.",
-                platform="Win64",
-                webgl_vendor="Intel Inc.",
-                renderer="Intel Iris OpenGL Engine",
-                fix_hairline=True,
-                wait=webdriver.Chrome.implicitly_wait(driver, 100.00))
-        driver.get(url)
-        time.sleep(5)
-        generated_html = driver.page_source
-        bs = BeautifulSoup(generated_html, "html.parser")
-        price = bs.find('span', class_='price card-price__cur')
-        price = priceToINT(price)
-        name = (bs.find('h1', class_='section__hl').text.strip())
-        driver.quit()
-        return {"price": price, "name": name}
-    except Exception as err:
-        mes = f"{url} Unexpected {err=}, {type(err)=}"
-        print(mes)
-        logging.error(mes)
-
-
-async def avito_parsing(url):
+def avito_parsing(url):
     try:
 
         from selenium.webdriver.chrome.service import Service
