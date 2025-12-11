@@ -16,14 +16,15 @@ async def parsing(uniq_url_list, ws):
         for future in tqdm(concurrent.futures.as_completed(future_to_url), total=len(uniq_url_list)):
             try:
                 data = future.result()
-            except Exception as exc:
-                data = str(type(exc))
-            finally:
+
                 # запись уникальной ссылки с ценой выходной лист
                 output_list.append([data['url'], data['name'], data['price']])
-
                 # запись уникальной ссылки с ценой в Эксель
                 ws.append({1: data['url'], 2: data['name'], 3: data['price']})
+                # print(data)
+            except Exception as err:
+                data = str(type(err))
+                print(f"\n[ERROR] Unexpected {err=}, {type(err)=}")
                 # print(data)
 
     return output_list
