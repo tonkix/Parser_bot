@@ -59,7 +59,7 @@ def get_ozon_json(url):
     url = url.split('?')[0]
     json_url = f"https://www.ozon.ru/api/entrypoint-api.bx/page/json/v2?url=%2Fproduct%2F{url.split('product/')[1]}"
 
-    driver = uc.Chrome(headless=True, use_subprocess=False)
+    driver = uc.Chrome(headless=True, use_subprocess=True)
     # print(f"Ссылка заняла {time.perf_counter() - start:0.4f} секунд")
     stealth(driver,
             languages=["ru-RU", "ru"],
@@ -79,7 +79,6 @@ def get_ozon_json(url):
         print("[ERROR] Тайм-аут")
         driver.quit()
 
-    driver.get(json_url)
     # print(f"Ссылка заняла {time.perf_counter() - start:0.4f} секунд")
     generated_html = driver.page_source
 
