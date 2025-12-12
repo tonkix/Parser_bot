@@ -375,9 +375,9 @@ async def avtoall_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
-        price = bs.find('div', class_="d-flex align-items-center").text
+        price = bs.find('b', class_="c1 price-internet").text
         price = priceToINT(price)
-        name = (bs.find('div', class_='heading').find('span', '').text
+        name = (bs.find('span', itemprop='name').text
                 .strip())
         return {"price": price, "name": name}
     except Exception as err:
