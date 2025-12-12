@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 import subprocess
 import sys
 import time
@@ -15,6 +16,11 @@ from selenium.webdriver import ChromeOptions
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium_stealth import stealth
 
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
+
+from selenium.webdriver.chrome.service import Service as ChromeService
+
 
 def priceToINT(price):
     try:
@@ -25,12 +31,15 @@ def priceToINT(price):
 
 
 # https://jsonformatter.org/
-def get_ozon_json(url, driver):
+def get_ozon_json(url):
     # start = time.perf_counter()
     url = url.split('?')[0]
     json_url = f"https://www.ozon.ru/api/entrypoint-api.bx/page/json/v2?url=%2Fproduct%2F{url.split('product/')[1]}"
 
-    # driver = uc.Chrome(headless=True, use_subprocess=False)
+    # service = Service(executable_path=ChromeDriverManager().install())
+    service = ChromeService(ChromeDriverManager().install())
+
+    driver = uc.Chrome(service=service, headless=True, use_subprocess=False, user_multi_procs=True)
     # print(f"Ссылка заняла {time.perf_counter() - start:0.4f} секунд")
     stealth(driver,
             languages=["ru-RU", "ru"],
@@ -43,7 +52,7 @@ def get_ozon_json(url, driver):
 
     driver.get(json_url)
     try:
-        element = WebDriverWait(driver, 5).until(
+        element = WebDriverWait(driver, 10).until(
             ec.presence_of_element_located((By.TAG_NAME, "pre"))
         )
     except TimeoutException:
@@ -52,16 +61,17 @@ def get_ozon_json(url, driver):
     # print(f"Ссылка заняла {time.perf_counter() - start:0.4f} секунд")
     generated_html = driver.page_source
 
+    driver.quit()
+
     bs = BeautifulSoup(generated_html, "html.parser")
     json_data = bs.find('pre').text
-    driver.quit()
 
     return json.loads(str(json_data))
 
 
-def ozon_parsing(url, driver):
+def ozon_parsing(url):
     try:
-        parsed_data = get_ozon_json(url, driver)
+        parsed_data = get_ozon_json(url)
         # parsed_data = get_fast_ozon_json(url)
         temp_data = parsed_data['widgetStates']
 
@@ -596,9 +606,6 @@ def ferrum_parsing(url):
 
 def avito_parsing(url):
     try:
-
-        from selenium.webdriver.chrome.service import Service
-        from webdriver_manager.chrome import ChromeDriverManager
 
         options = ChromeOptions()
         options.add_argument("--headless=true")

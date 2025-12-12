@@ -3,7 +3,7 @@ import app.parsing as pars
 
 
 # парсинг списка ссылок
-async def parsing(uniq_url_list, ws):
+def parsing(uniq_url_list, ws):
     logging.info('Parsing started')
     output_list = list()
 
@@ -24,7 +24,7 @@ async def parsing(uniq_url_list, ws):
                 # print(data)
             except Exception as err:
                 data = str(type(err))
-                print(f"\n[ERROR] Unexpected {err=}, {type(err)=}")
+                # print(f"\n[ERROR] Unexpected {err=}, {type(err)=}")
                 # print(data)
 
     return output_list
@@ -33,14 +33,17 @@ async def parsing(uniq_url_list, ws):
 # парсинг одной ссылки
 def parsing_one(url):
     logging.info('Parsing started')
-    import undetected_chromedriver as uc
-    driver = uc.Chrome(headless=True, use_subprocess=False)
     price = ''
     name = ''
     if url is not None:
 
         if "motorring.ru" in url:
             result = pars.motorring_parsing(url)
+            price = result['price']
+            name = result['name']
+
+        elif "ozon.ru" in url:
+            result = pars.ozon_parsing(url)
             price = result['price']
             name = result['name']
 
@@ -206,11 +209,6 @@ def parsing_one(url):
 
         elif "ferrum.group" in url:
             result = pars.ferrum_parsing(url)
-            price = result['price']
-            name = result['name']
-
-        elif "ozon.ru" in url:
-            result = pars.ozon_parsing(url, driver)
             price = result['price']
             name = result['name']
 

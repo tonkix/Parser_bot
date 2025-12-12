@@ -86,7 +86,7 @@ async def Work_With_File(data: Workbook):
     ws = wb.active
     ws.title = "Output data"
     uniq_url = list(set(list_url))
-    parsing_result = await parsing(uniq_url, ws)
+    parsing_result = parsing(uniq_url, ws)
     sheet_name = 'dictionary'
     wb.create_sheet(sheet_name)
     ws = wb[sheet_name]
