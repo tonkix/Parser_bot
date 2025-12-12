@@ -1,8 +1,13 @@
+import os
 import logging
 from app.db.models import async_session
 from app.db.models import User, Product, Link
 from sqlalchemy import select
 from datetime import datetime
+from dotenv import load_dotenv
+
+load_dotenv()
+MASTER_PASSWORD = os.getenv("MASTER_PASSWORD")
 
 
 async def set_user(tg_id: int, firstname, lastname, subscribed, role=1):
@@ -19,7 +24,7 @@ async def set_user(tg_id: int, firstname, lastname, subscribed, role=1):
 
 
 async def check_password(password):
-    return password == '41802967'
+    return password == MASTER_PASSWORD
 
 
 async def get_user_by_tg(tg_id: int):
@@ -73,14 +78,14 @@ async def add_link(url, price, name, product_id):
 async def get_product_by_tt_id(product_tt_id: int):
     async with async_session() as session:
         products = await session.scalars(select(Product).where(Product.product_tt_id == product_tt_id))
-        print('finding by ID')
+        print('[INFO] ищу по ID')
         return products
 
 
 async def get_product_by_tt_code(product_tt_code: int):
     async with async_session() as session:
         products = await session.scalars(select(Product).where(Product.product_tt_code == product_tt_code))
-        print('finding by Code')
+        print('[INFO] ищу по Code')
         return products
 
 
@@ -91,12 +96,12 @@ async def get_products_by_link(url):
         for link in links:
             product = await get_product_by_tt_id(link.product_id)
             products_tt.append(product)
-        print('finding by URL')
+        print('[INFO] ищу по URL')
         return products_tt
 
 
 async def get_products_by_name(name):
-    '''async with async_session() as session:
+    """async with async_session() as session:
         name = name.lower().split(' ')
         print(name)
         out_product = list()
@@ -106,8 +111,8 @@ async def get_products_by_name(name):
             # products = products_tt.all().scalars(select(Product).where(Product.name.contains(word)))
         for p in products:
             print(p.name)
-        return products_tt'''
-    print('finding by NAME')
+        return products_tt"""
+    print('[INFO] ищу по NAME')
 
 
 async def get_links_by_tt_id(product_tt_id):

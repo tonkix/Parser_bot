@@ -2,8 +2,8 @@ import logging
 import openpyxl
 from aiogram import F, Bot, Router
 from aiogram.enums import ContentType
-from aiogram.types import Message, CallbackQuery, FSInputFile
-from aiogram.filters import CommandStart, Command
+from aiogram.types import Message, FSInputFile
+from aiogram.filters import Command
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 from dotenv import load_dotenv
@@ -104,8 +104,8 @@ async def Work_With_File(data: Workbook):
                               name=data[1],
                               price=data[2])
         except Exception as err:
-            mes = f"Unexpected {err=}, {type(err)=}"
-            print(mes)
+            mes = f"[ERROR] Unexpected {err=}, {type(err)=}"
+            # print(mes)
             logging.error(mes)
 
     return wb
@@ -161,13 +161,11 @@ async def cmd_backup(message: Message):
     logging.info('Запрос backup_db')
     user = await rq.get_user_by_tg(message.from_user.id)
     if user.role == 99:
-        await message.reply_document(
-            document=FSInputFile(
-                path='db.sqlite3',
-                filename='backup_db.sqlite3',
-            ),
-        )
         logging.info('Запрос backup_db - пользователь принят')
+
+        # не отправляет файл, пишет слишком большой
+        document = FSInputFile(path='db.sqlite3', filename='backup_db.sqlite3')
+        await message.reply_document(document=document)
     else:
         logging.error('Запрос backup_db - не прошла проверка пользователя')
 
@@ -263,6 +261,7 @@ async def add_tt_products(data: Workbook):
                                  retail_price=retail_price)
 
 
+# ловит файл и делает парсинг по ссылкам в файле
 @router.message(F.content_type == ContentType.DOCUMENT)
 async def get_doc(message: Message, bot: Bot):
     await rq.set_user(tg_id=message.from_user.id,
@@ -303,28 +302,30 @@ async def get_doc(message: Message, bot: Bot):
     )
 
 
+# Поиск товара
 async def find_products(text):
-    logging.info("Поиск по ID")
+    logging.info("[INFO] Поиск по ID")
     products = await rq.get_product_by_tt_id(text.split(' ')[0])
     if len(list(products)) == 0:
-        logging.info("Поиск по коду")
+        logging.info("[INFO] Поиск по коду")
         products = await rq.get_product_by_tt_code(text.split(' ')[0])
         if len(list(products)) == 0:
-            logging.info("Поиск по ссылке")
+            logging.info("[INFO] Поиск по ссылке")
             products = await rq.get_products_by_link(text)
             if len(list(products)) == 0:
-                logging.info("Поиск по названию")
+                logging.info("[INFO] Поиск по названию")
                 products = await rq.get_products_by_name(text)
     return products
 
 
 # @router.message(F.text.contains('товар'))
+# ловит любое сообщение, которое не прошло фильтры выше
 @router.message()
 async def get_links(message: Message):
     products = await find_products(message.text)
     for product in products:
-        logging.info("Перебор")
-        print("Перебор")
+        logging.info("[INFO] Поиск")
+        print("[INFO] Поиск")
         if product is not None:
             await message.answer(text="Найден товар",
                                  disable_notification=True,

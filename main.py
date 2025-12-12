@@ -20,7 +20,7 @@ logging.basicConfig(filename='logs.log',
 
 
 async def main():
-    logging.info('---START---')
+    logging.info('[INFO] ---START---')
     await async_main()
     bot = Bot(token=BOT_TOKEN)
     dp = Dispatcher()
@@ -40,5 +40,5 @@ if __name__ == '__main__':
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        print("Bot disabled")
-        logging.info('---Bot disabled---')
+        print("[INFO] Bot disabled")
+        logging.info('[INFO] ---Bot disabled---')

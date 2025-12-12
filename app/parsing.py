@@ -1,51 +1,19 @@
 import json
 import logging
-import time
 import requests
-import urllib3
 import undetected_chromedriver as uc
+import urllib3
 from bs4 import BeautifulSoup
 from selenium import webdriver
+from selenium.common import TimeoutException
 from selenium.webdriver import ChromeOptions
-from selenium.webdriver import EdgeOptions
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium_stealth import stealth
-
-
-# https://jsonformatter.org/
-def get_ozon_json(url):
-    # start = time.perf_counter()
-    json_url = f"https://www.ozon.ru/api/entrypoint-api.bx/page/json/v2?url=%2Fproduct%2F{url.split('product/')[1]}"
-
-    driver = uc.Chrome(headless=True, use_subprocess=False)
-    # print(f"Ссылка заняла {time.perf_counter() - start:0.4f} секунд")
-    stealth(driver,
-            languages=["ru-RU", "ru"],
-            vendor="Google Inc.",
-            platform="Win64",
-            webgl_vendor="Intel Inc.",
-            renderer="Intel Iris OpenGL Engine",
-            fix_hairline=True)
-
-    driver.get(json_url)
-    try:
-        element = WebDriverWait(driver, 5).until(
-            ec.presence_of_element_located((By.TAG_NAME, "pre"))
-        )
-    except TimeoutError:
-        driver.quit()
-    # print(f"Ссылка заняла {time.perf_counter() - start:0.4f} секунд")
-    generated_html = driver.page_source
-    bs = BeautifulSoup(generated_html, "html.parser")
-    json_data = bs.find('pre').text
-    driver.quit()
-    return json.loads(str(json_data))
-
-
-def get_fast_ozon_json(url):
-    pass
+from webdriver_manager.chrome import ChromeDriverManager
 
 
 def priceToINT(price):
@@ -56,7 +24,46 @@ def priceToINT(price):
         return price
 
 
-async def ozon_parsing(url):
+# https://jsonformatter.org/
+def get_ozon_json(url):
+    # start = time.perf_counter()
+    url = url.split('?')[0]
+    json_url = f"https://www.ozon.ru/api/entrypoint-api.bx/page/json/v2?url=%2Fproduct%2F{url.split('product/')[1]}"
+
+    # service = Service(executable_path=ChromeDriverManager().install())
+    service = ChromeService(ChromeDriverManager().install())
+
+    driver = uc.Chrome(service=service, headless=True, use_subprocess=False, user_multi_procs=True)
+    # print(f"Ссылка заняла {time.perf_counter() - start:0.4f} секунд")
+    stealth(driver,
+            languages=["ru-RU", "ru"],
+            vendor="Google Inc.",
+            platform="Win64",
+            webgl_vendor="Intel Inc.",
+            renderer="Intel Iris OpenGL Engine",
+            fix_hairline=True,
+            )
+
+    driver.get(json_url)
+    try:
+        element = WebDriverWait(driver, 10).until(
+            ec.presence_of_element_located((By.TAG_NAME, "pre"))
+        )
+    except TimeoutException:
+        print("[ERROR] Тайм-аут")
+        driver.quit()
+    # print(f"Ссылка заняла {time.perf_counter() - start:0.4f} секунд")
+    generated_html = driver.page_source
+
+    driver.quit()
+
+    bs = BeautifulSoup(generated_html, "html.parser")
+    json_data = bs.find('pre').text
+
+    return json.loads(str(json_data))
+
+
+def ozon_parsing(url):
     try:
         parsed_data = get_ozon_json(url)
         # parsed_data = get_fast_ozon_json(url)
@@ -67,7 +74,7 @@ async def ozon_parsing(url):
         try:
             price = price['cardPrice']
         except Exception as err:
-            mes = f"{url} Unexpected {err=}, {type(err)=}"
+            mes = f"[ERROR] {url} Unexpected {err=}, {type(err)=}"
             print(mes)
             price = price['price']
         price = priceToINT(price)
@@ -77,18 +84,33 @@ async def ozon_parsing(url):
         name = name['name']
         return {"price": price, "name": name}
     except Exception as err:
-        mes = f"{url} Unexpected {err=}, {type(err)=}"
+        mes = f"[ERROR] {url} Unexpected {err=}, {type(err)=}"
         print(mes)
         logging.error(mes)
 
 
-async def motorring_parsing(url):
+def alphardaudio_parsing(url):
     try:
-        urllib3.disable_warnings()
-        page = requests.get(url, verify=False)
-        bs = BeautifulSoup(page.text, "lxml")
-        price = priceToINT(bs.find('span', id='e-curr-price').text)
-        name = (bs.find('h1', class_='text_title m0 p0').text
+        driver = uc.Chrome(headless=True, use_subprocess=False)
+        # print(f"Ссылка заняла {time.perf_counter() - start:0.4f} секунд")
+        stealth(driver,
+                languages=["ru-RU", "ru"],
+                vendor="Google Inc.",
+                platform="Win64",
+                webgl_vendor="Intel Inc.",
+                renderer="Intel Iris OpenGL Engine",
+                fix_hairline=True,
+                )
+
+        driver.get(url)
+        # driver.implicitly_wait(10)
+        generated_html = driver.page_source
+        driver.quit()
+
+        bs = BeautifulSoup(generated_html, 'html.parser')
+        price = bs.find('div', class_='modification_price').find('span').text
+        price = priceToINT(price)
+        name = (bs.find('h1', class_='h3').text
                 .strip())
         return {"price": price, "name": name}
     except Exception as err:
@@ -97,7 +119,104 @@ async def motorring_parsing(url):
         logging.error(mes)
 
 
-async def timeturbo_parsing(url):
+def loudsound_parsing(url):
+    try:
+        page = requests.get(url)
+        bs = BeautifulSoup(page.text, "lxml")
+        price = bs.find('span', itemprop='price').text
+        price = priceToINT(price)
+        name = (bs.find('h1', itemprop='name').text
+                .strip())
+        return {"price": price, "name": name}
+    except Exception as err:
+        mes = f"{url} Unexpected {err=}, {type(err)=}"
+        print(mes)
+        logging.error(mes)
+
+
+def motorring_parsing(url):
+    try:
+        urllib3.disable_warnings()
+        from curl_cffi import requests
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
+                          'Chrome/141.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
+            'Accept-Encoding': 'none',
+            'Accept-Language': 'en-US,en;q=0.8',
+            'cookie': 'PHPSESSID=455be602b61b30e47be0a2188c6fda1a; __ddgid_=XwSi5UyiCLtGmNNt; '
+                      '__ddgmark_=QiPdyGLwJAXwReHB; __ddg2_=NlXqiRbhPF4ODIlu; __ddg1_=oaKXEHc7AsNulzdZe3ji; '
+                      'page_state=[{"id":"164","page":"0","is_filter":true}]; __ddg9_=80.234.92.236; '
+                      '__ddg5_=HNHXgARPfXYXoyzH; __ddg10_=1760434223; __ddg8_=kmt9syEdBxjxb9wv',
+            'Connection': 'keep-alive'}
+
+        page = requests.get(url, verify=False, impersonate="safari", headers=headers)
+        bs = BeautifulSoup(page.text, "lxml")
+
+        # новый
+        # price = priceToINT(bs.find('span', class_='current__price').text)
+        # name = (bs.find('h1', class_='title__head').text
+
+        # старый
+        price = priceToINT(bs.find('span', id='e-curr-price').text)
+        name = (bs.find('h1', id='e-name').text
+                .strip())
+        return {"price": price, "name": name}
+    except Exception as err:
+        mes = f"[ERROR] {url} Unexpected {err=}, {type(err)=}"
+        # print(bs)
+        print(mes)
+        logging.error(mes)
+
+
+def autoproduct_parsing(url):
+    try:
+        urllib3.disable_warnings()
+        page = requests.get(url, verify=False)
+        bs = BeautifulSoup(page.text, "lxml")
+        price = priceToINT(bs.find('div', class_='product-main__right-block')
+                           .find('div', class_='price').find('span').text)
+        name = (bs.find('h2', class_='title').text
+                .strip())
+        return {"price": price, "name": name}
+    except Exception as err:
+        mes = f"[ERROR] {url} Unexpected {err=}, {type(err)=}"
+        print(mes)
+        logging.error(mes)
+
+
+def lecar_parsing(url):
+    try:
+        urllib3.disable_warnings()
+        from curl_cffi import requests
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
+                          'Chrome/141.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
+            'Accept-Encoding': 'none',
+            'Accept-Language': 'en-US,en;q=0.8',
+            'cookie': 'PHPSESSID=455be602b61b30e47be0a2188c6fda1a; __ddgid_=XwSi5UyiCLtGmNNt; '
+                      '__ddgmark_=QiPdyGLwJAXwReHB; __ddg2_=NlXqiRbhPF4ODIlu; __ddg1_=oaKXEHc7AsNulzdZe3ji; '
+                      'page_state=[{"id":"164","page":"0","is_filter":true}]; __ddg9_=80.234.92.236; '
+                      '__ddg5_=HNHXgARPfXYXoyzH; __ddg10_=1760434223; __ddg8_=kmt9syEdBxjxb9wv',
+            'Connection': 'keep-alive'}
+
+        page = requests.get(url, verify=False, impersonate="safari", headers=headers)
+        bs = BeautifulSoup(page.text, "lxml")
+        #print(bs)
+        price = priceToINT(bs.find('div', class_='OfferCart_price__2PerE').text)
+        name = (bs.find('h1', class_='title_title__V0fDu ewddmpm3 css-1kg7k5a e1kw2ndg0').text
+                .strip())
+        return {"price": price, "name": name}
+    except Exception as err:
+        mes = f"[ERROR] {url} Unexpected {err=}, {type(err)=}"
+        print(mes)
+        logging.error(mes)
+
+
+def timeturbo_parsing(url):
     try:
         page = requests.get(url, verify=False)
         bs = BeautifulSoup(page.text, "lxml")
@@ -111,12 +230,13 @@ async def timeturbo_parsing(url):
         logging.error(mes)
 
 
-async def sport33_parsing(url):
+def sport33_parsing(url):
     try:
+        urllib3.disable_warnings()
         page = requests.get(url, verify=False)
         bs = BeautifulSoup(page.text, "lxml")
         price = priceToINT(bs.find('span', class_='priceVal').text)
-        name = (bs.find('h1', '').text
+        name = (bs.find('h1').text
                 .strip())
         return {"price": price, "name": name}
     except Exception as err:
@@ -125,7 +245,7 @@ async def sport33_parsing(url):
         logging.error(mes)
 
 
-async def mag_demfi_parsing(url):
+def mag_demfi_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
@@ -140,7 +260,7 @@ async def mag_demfi_parsing(url):
         logging.error(mes)
 
 
-async def aston_parsing(url):
+def aston_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
@@ -155,7 +275,7 @@ async def aston_parsing(url):
         logging.error(mes)
 
 
-async def prestigeltd_parsing(url):
+def prestigeltd_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
@@ -170,7 +290,7 @@ async def prestigeltd_parsing(url):
         logging.error(mes)
 
 
-async def store_starline_parsing(url):
+def store_starline_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
@@ -185,7 +305,7 @@ async def store_starline_parsing(url):
         logging.error(mes)
 
 
-async def starline_russia_parsing(url):
+def starline_russia_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
@@ -201,13 +321,13 @@ async def starline_russia_parsing(url):
         logging.error(mes)
 
 
-async def avt_tuning_parsing(url):
+def avt_tuning_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
         price = bs.find('span', class_='item_price').text
         price = priceToINT(price)
-        name = (bs.find('h2', '').text
+        name = (bs.find('h2').text
                 .strip())
         return {"price": price, "name": name}
     except Exception as err:
@@ -216,7 +336,7 @@ async def avt_tuning_parsing(url):
         logging.error(mes)
 
 
-async def gearbox63_parsing(url):
+def gearbox63_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
@@ -231,13 +351,13 @@ async def gearbox63_parsing(url):
         logging.error(mes)
 
 
-async def avtoall_parsing(url):
+def avtoall_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
-        price = bs.find('div', class_="d-flex align-items-center").text
+        price = bs.find('b', class_="c1 price-internet").text
         price = priceToINT(price)
-        name = (bs.find('div', class_='heading').find('span', '').text
+        name = (bs.find('span', itemprop='name').text
                 .strip())
         return {"price": price, "name": name}
     except Exception as err:
@@ -246,7 +366,7 @@ async def avtoall_parsing(url):
         logging.error(mes)
 
 
-async def xenon63_parsing(url):
+def xenon63_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
@@ -261,7 +381,7 @@ async def xenon63_parsing(url):
         logging.error(mes)
 
 
-async def tuningprosto_parsing(url):
+def tuningprosto_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
@@ -276,7 +396,7 @@ async def tuningprosto_parsing(url):
         logging.error(mes)
 
 
-async def shop_bear_parsing(url):
+def shop_bear_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
@@ -291,22 +411,7 @@ async def shop_bear_parsing(url):
         logging.error(mes)
 
 
-async def loudsound_parsing(url):
-    try:
-        page = requests.get(url)
-        bs = BeautifulSoup(page.text, "lxml")
-        price = bs.find('span', itemprop='price').text
-        price = priceToINT(price)
-        name = (bs.find('h1', itemprop='name').text
-                .strip())
-        return {"price": price, "name": name}
-    except Exception as err:
-        mes = f"{url} Unexpected {err=}, {type(err)=}"
-        print(mes)
-        logging.error(mes)
-
-
-async def satox_parsing(url):
+def satox_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
@@ -321,7 +426,7 @@ async def satox_parsing(url):
         logging.error(mes)
 
 
-async def autodemic_parsing(url):
+def autodemic_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
@@ -336,7 +441,7 @@ async def autodemic_parsing(url):
         logging.error(mes)
 
 
-async def original_detal_parsing(url):
+def original_detal_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
@@ -351,7 +456,7 @@ async def original_detal_parsing(url):
         logging.error(mes)
 
 
-async def lada_online_parsing(url):
+def lada_online_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
@@ -366,7 +471,7 @@ async def lada_online_parsing(url):
         logging.error(mes)
 
 
-async def car_team_parsing(url):
+def car_team_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
@@ -381,7 +486,7 @@ async def car_team_parsing(url):
         logging.error(mes)
 
 
-async def nvs_car_parsing(url):
+def nvs_car_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
@@ -396,7 +501,7 @@ async def nvs_car_parsing(url):
         logging.error(mes)
 
 
-async def standart_detail_parsing(url):
+def standart_detail_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
@@ -411,7 +516,7 @@ async def standart_detail_parsing(url):
         logging.error(mes)
 
 
-async def avtozap_parsing(url):
+def avtozap_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
@@ -426,7 +531,7 @@ async def avtozap_parsing(url):
         logging.error(mes)
 
 
-async def lada_sport_parsing(url):
+def lada_sport_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
@@ -441,7 +546,7 @@ async def lada_sport_parsing(url):
         logging.error(mes)
 
 
-async def komponentavto_parsing(url):
+def komponentavto_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
@@ -456,7 +561,7 @@ async def komponentavto_parsing(url):
         logging.error(mes)
 
 
-async def rezkon_parsing(url):
+def rezkon_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
@@ -471,7 +576,7 @@ async def rezkon_parsing(url):
         logging.error(mes)
 
 
-async def salman_parsing(url):
+def salman_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
@@ -486,7 +591,7 @@ async def salman_parsing(url):
         logging.error(mes)
 
 
-async def ferrum_parsing(url):
+def ferrum_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
@@ -508,61 +613,8 @@ async def ferrum_parsing(url):
         logging.error(mes)
 
 
-# TODO не работает
-async def bibi_parsing(url):
+def avito_parsing(url):
     try:
-        driver = uc.Chrome(headless=True, use_subprocess=False)
-        stealth(driver,
-                languages=["ru-RU", "ru"],
-                vendor="Google Inc.",
-                platform="Win64",
-                webgl_vendor="Intel Inc.",
-                renderer="Intel Iris OpenGL Engine",
-                fix_hairline=True,
-                wait=webdriver.Chrome.implicitly_wait(driver, 100.00))
-        driver.get(url)
-        time.sleep(5)
-        generated_html = driver.page_source
-        bs = BeautifulSoup(generated_html, "html.parser")
-        price = bs.find('span', class_='price card-price__cur')
-        price = priceToINT(price)
-        name = (bs.find('h1', class_='section__hl').text.strip())
-        driver.quit()
-        return {"price": price, "name": name}
-    except Exception as err:
-        mes = f"{url} Unexpected {err=}, {type(err)=}"
-        print(mes)
-        logging.error(mes)
-
-
-async def alphardaudio_parsing(url):
-    try:
-        options = EdgeOptions()
-        options.add_argument("--headless=true")
-        driver = webdriver.Edge(options=options)
-
-        driver.get(url)
-        # driver.implicitly_wait(10)
-        generated_html = driver.page_source
-        driver.quit()
-
-        bs = BeautifulSoup(generated_html, 'html.parser')
-        price = bs.find('div', class_='modification_price').find('span').text
-        price = priceToINT(price)
-        name = (bs.find('h1', class_='h3').text
-                .strip())
-        return {"price": price, "name": name}
-    except Exception as err:
-        mes = f"{url} Unexpected {err=}, {type(err)=}"
-        print(mes)
-        logging.error(mes)
-
-
-async def avito_parsing(url):
-    try:
-
-        from selenium.webdriver.chrome.service import Service
-        from webdriver_manager.chrome import ChromeDriverManager
 
         options = ChromeOptions()
         options.add_argument("--headless=true")

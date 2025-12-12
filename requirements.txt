@@ -10,8 +10,11 @@ aiosqlite
 beautifulsoup4
 APScheduler
 selenium
-seleniumbase
 selenium-stealth
-undetected_chromedriver
+undetected-chromedriver
 webdriver-manager
 urllib3
+browser-cookie3
+curl_cffi
+tqdm
+webdriver-manager
