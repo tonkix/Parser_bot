@@ -1,25 +1,19 @@
 import json
 import logging
-import os
-import subprocess
-import sys
-import time
 import requests
-import urllib3
 import undetected_chromedriver as uc
-from selenium.common import TimeoutException
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as ec
+import urllib3
 from bs4 import BeautifulSoup
 from selenium import webdriver
+from selenium.common import TimeoutException
 from selenium.webdriver import ChromeOptions
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.service import Service as ChromeService
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium_stealth import stealth
-
-from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
-
-from selenium.webdriver.chrome.service import Service as ChromeService
 
 
 def priceToINT(price):
@@ -195,8 +189,23 @@ def autoproduct_parsing(url):
 def lecar_parsing(url):
     try:
         urllib3.disable_warnings()
-        page = requests.get(url, verify=False)
+        from curl_cffi import requests
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
+                          'Chrome/141.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
+            'Accept-Encoding': 'none',
+            'Accept-Language': 'en-US,en;q=0.8',
+            'cookie': 'PHPSESSID=455be602b61b30e47be0a2188c6fda1a; __ddgid_=XwSi5UyiCLtGmNNt; '
+                      '__ddgmark_=QiPdyGLwJAXwReHB; __ddg2_=NlXqiRbhPF4ODIlu; __ddg1_=oaKXEHc7AsNulzdZe3ji; '
+                      'page_state=[{"id":"164","page":"0","is_filter":true}]; __ddg9_=80.234.92.236; '
+                      '__ddg5_=HNHXgARPfXYXoyzH; __ddg10_=1760434223; __ddg8_=kmt9syEdBxjxb9wv',
+            'Connection': 'keep-alive'}
+
+        page = requests.get(url, verify=False, impersonate="safari", headers=headers)
         bs = BeautifulSoup(page.text, "lxml")
+        #print(bs)
         price = priceToINT(bs.find('div', class_='OfferCart_price__2PerE').text)
         name = (bs.find('h1', class_='title_title__V0fDu ewddmpm3 css-1kg7k5a e1kw2ndg0').text
                 .strip())
@@ -346,9 +355,9 @@ def avtoall_parsing(url):
     try:
         page = requests.get(url)
         bs = BeautifulSoup(page.text, "lxml")
-        price = bs.find('div', class_="d-flex align-items-center").text
+        price = bs.find('b', class_="c1 price-internet").text
         price = priceToINT(price)
-        name = (bs.find('div', class_='heading').find('span', '').text
+        name = (bs.find('span', itemprop='name').text
                 .strip())
         return {"price": price, "name": name}
     except Exception as err:

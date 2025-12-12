@@ -3,7 +3,7 @@ import app.parsing as pars
 
 
 # парсинг списка ссылок
-def parsing(uniq_url_list, ws):
+async def parsing(uniq_url_list, ws):
     logging.info('Parsing started')
     output_list = list()
 
