@@ -30,9 +30,7 @@ def get_ozon_json(url):
     url = url.split('?')[0]
     json_url = f"https://www.ozon.ru/api/entrypoint-api.bx/page/json/v2?url=%2Fproduct%2F{url.split('product/')[1]}"
 
-    # service = Service(executable_path=ChromeDriverManager().install())
     service = ChromeService(ChromeDriverManager().install())
-
     driver = uc.Chrome(service=service, headless=True, use_subprocess=False, user_multi_procs=True)
     # print(f"Ссылка заняла {time.perf_counter() - start:0.4f} секунд")
     stealth(driver,
@@ -92,7 +90,6 @@ def ozon_parsing(url):
 def alphardaudio_parsing(url):
     try:
         driver = uc.Chrome(headless=True, use_subprocess=False)
-        # print(f"Ссылка заняла {time.perf_counter() - start:0.4f} секунд")
         stealth(driver,
                 languages=["ru-RU", "ru"],
                 vendor="Google Inc.",
@@ -205,7 +202,7 @@ def lecar_parsing(url):
 
         page = requests.get(url, verify=False, impersonate="safari", headers=headers)
         bs = BeautifulSoup(page.text, "lxml")
-        #print(bs)
+        # print(bs)
         price = priceToINT(bs.find('div', class_='OfferCart_price__2PerE').text)
         name = (bs.find('h1', class_='title_title__V0fDu ewddmpm3 css-1kg7k5a e1kw2ndg0').text
                 .strip())
