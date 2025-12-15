@@ -612,7 +612,6 @@ def ferrum_parsing(url):
 
 def avito_parsing(url):
     try:
-
         options = ChromeOptions()
         options.add_argument("--headless=true")
 
