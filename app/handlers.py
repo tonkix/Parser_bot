@@ -87,6 +87,9 @@ async def Work_With_File(data: Workbook):
     ws.title = "Output data"
     uniq_url = list(set(list_url))
     parsing_result = await parsing(uniq_url, ws)
+
+    """
+    # Добавление ссылки в базу и в отдельный лист Excel
     sheet_name = 'dictionary'
     wb.create_sheet(sheet_name)
     ws = wb[sheet_name]
@@ -107,6 +110,7 @@ async def Work_With_File(data: Workbook):
             mes = f"[ERROR] Unexpected {err=}, {type(err)=}"
             # print(mes)
             logging.error(mes)
+    """
 
     return wb
 

@@ -19,7 +19,7 @@ async def parsing(uniq_url_list, ws):
 
                 # запись уникальной ссылки с ценой выходной лист
                 output_list.append([data['url'], data['name'], data['price']])
-                # запись уникальной ссылки с ценой в Эксель
+                # запись уникальной ссылки с ценой в Excel
                 ws.append({1: data['url'], 2: data['name'], 3: data['price']})
                 # print(data)
             except Exception as err:
