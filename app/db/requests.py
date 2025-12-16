@@ -103,12 +103,13 @@ async def get_products_by_link(url):
 # Поиск по полному совпадению имени
 async def get_products_by_name(name: str):
     async with async_session() as session:
-        name = name.lower()
+        name = name.lower().split(' ')
         # print(name)
         out_products = list()
-        products_tt = await session.scalars(select(Product).where(Product.name == name))
-        for p in products_tt:
-            out_products.append(p)
+        for word in name:
+            products_tt = await session.scalars(select(Product).where(Product.name.contains(word)))
+            for p in products_tt:
+                out_products.append(p)
         # print('[INFO] ищу по NAME')
         return out_products
 
