@@ -310,16 +310,26 @@ async def get_doc(message: Message, bot: Bot):
 async def find_products(text):
     logging.info("[INFO] Поиск по ID")
     products = await rq.get_product_by_tt_id(text.split(' ')[0])
-    if len(list(products)) == 0:
+    product_list = list()
+    for p in products:
+        product_list.append(p)
+    if len(list(product_list)) == 0:
         logging.info("[INFO] Поиск по коду")
         products = await rq.get_product_by_tt_code(text.split(' ')[0])
-        if len(list(products)) == 0:
+        for p in products:
+            product_list.append(p)
+        if len(list(product_list)) == 0:
             logging.info("[INFO] Поиск по ссылке")
             products = await rq.get_products_by_link(text)
-            if len(list(products)) == 0:
+            for p in products:
+                product_list.append(p)
+            if len(list(product_list)) == 0:
                 logging.info("[INFO] Поиск по названию")
                 products = await rq.get_products_by_name(text)
-    return products
+                for p in products:
+                    product_list.append(p)
+
+    return product_list
 
 
 # @router.message(F.text.contains('товар'))
@@ -328,14 +338,14 @@ async def find_products(text):
 async def get_links(message: Message):
     products = await find_products(message.text)
     for product in products:
-        logging.info("[INFO] Поиск")
-        print("[INFO] Поиск")
+        logging.info("[INFO] Поиск товара")
+        print("[INFO] Поиск товара")
         if product is not None:
-            await message.answer(text="Найден товар",
+            """await message.answer(text="Найден товар",
                                  disable_notification=True,
-                                 disable_web_page_preview=True)
+                                 disable_web_page_preview=True)"""
             try:
-                data = await parsing_one(product.url)
+                data = parsing_one(product.url)
                 await message.answer(text=f"Товар: \nid: {product.product_tt_id}"
                                           f"\nКод товара: {product.product_tt_code}"
                                           f"\nНаименование: {product.name}"

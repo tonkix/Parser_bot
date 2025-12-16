@@ -78,14 +78,14 @@ async def add_link(url, price, name, product_id):
 async def get_product_by_tt_id(product_tt_id: int):
     async with async_session() as session:
         products = await session.scalars(select(Product).where(Product.product_tt_id == product_tt_id))
-        print('[INFO] ищу по ID')
+        # print('[INFO] ищу по ID')
         return products
 
 
 async def get_product_by_tt_code(product_tt_code: int):
     async with async_session() as session:
         products = await session.scalars(select(Product).where(Product.product_tt_code == product_tt_code))
-        print('[INFO] ищу по Code')
+        # print('[INFO] ищу по Code')
         return products
 
 
@@ -96,23 +96,21 @@ async def get_products_by_link(url):
         for link in links:
             product = await get_product_by_tt_id(link.product_id)
             products_tt.append(product)
-        print('[INFO] ищу по URL')
+        # print('[INFO] ищу по URL')
         return products_tt
 
 
-async def get_products_by_name(name):
-    """async with async_session() as session:
-        name = name.lower().split(' ')
-        print(name)
-        out_product = list()
-        products_tt = await session.scalars(select(Product))
-        for word in name:
-            products = products_tt.
-            # products = products_tt.all().scalars(select(Product).where(Product.name.contains(word)))
-        for p in products:
-            print(p.name)
-        return products_tt"""
-    print('[INFO] ищу по NAME')
+# Поиск по полному совпадению имени
+async def get_products_by_name(name: str):
+    async with async_session() as session:
+        name = name.lower()
+        # print(name)
+        out_products = list()
+        products_tt = await session.scalars(select(Product).where(Product.name == name))
+        for p in products_tt:
+            out_products.append(p)
+        # print('[INFO] ищу по NAME')
+        return out_products
 
 
 async def get_links_by_tt_id(product_tt_id):
