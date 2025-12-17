@@ -13,11 +13,12 @@ from datetime import datetime
 from openpyxl import Workbook
 
 import app.db.requests as rq
+from app import Settings
 from app.parser_1 import parsing, parsing_one
 
 router = Router()
 load_dotenv()
-
+ADMIN_ROLE = os.getenv("ADMIN_ROLE")
 
 class ImportTT(StatesGroup):
     file = State()
@@ -88,29 +89,28 @@ async def Work_With_File(data: Workbook):
     uniq_url = list(set(list_url))
     parsing_result = await parsing(uniq_url, ws)
 
-    """
-    # Добавление ссылки в базу и в отдельный лист Excel
-    sheet_name = 'dictionary'
-    wb.create_sheet(sheet_name)
-    ws = wb[sheet_name]
-    for k in id_url_list:
-        try:
-            data = await find_elem_by_url(k[1], parsing_result)
-            # print(str(k[0]) + "/" + str(k[1]))
-            ws.append({1: k[0],
-                       2: k[1],
-                       3: data[1],
-                       4: data[2]})
-
-            await rq.add_link(product_id=k[0],
-                              url=k[1],
-                              name=data[1],
-                              price=data[2])
-        except Exception as err:
-            mes = f"[ERROR] Unexpected {err=}, {type(err)=}"
-            # print(mes)
-            logging.error(mes)
-    """
+    if Settings.Enable_Creating_Dictionary_Worksheet:
+        # Добавление ссылки в базу и в отдельный лист Excel
+        sheet_name = 'dictionary'
+        wb.create_sheet(sheet_name)
+        ws = wb[sheet_name]
+        for k in id_url_list:
+            try:
+                data = await find_elem_by_url(k[1], parsing_result)
+                # print(str(k[0]) + "/" + str(k[1]))
+                ws.append({1: k[0],
+                           2: k[1],
+                           3: data[1],
+                           4: data[2]})
+                if Settings.Enable_Writing_to_DataBase:
+                    await rq.add_link(product_id=k[0],
+                                      url=k[1],
+                                      name=data[1],
+                                      price=data[2])
+            except Exception as err:
+                mes = f"[ERROR] Unexpected {err=}, {type(err)=}"
+                # print(mes)
+                logging.error(mes)
 
     return wb
 
@@ -122,7 +122,12 @@ async def cmd_start(message: Message):
                       lastname=message.from_user.last_name,
                       subscribed=0,
                       role=1)
-    await message.answer("Hello!")
+    await message.answer(f"Бот умеет"
+                         f"\n- Искать товары по id"
+                         f"\n- Искать товары по коду товара"
+                         f"\n- Искать товары по ссылке\n\n"
+                         f"\n- Искать товары по слову в названии\n\n"
+                         f"Можно отправить файл с ссылками и в ответ бот пришлет файл с результатами парсинга")
 
 
 @router.message(Command("subscribe"))
@@ -133,7 +138,7 @@ async def cmd_subscribe(message: Message):
                       subscribed=1,
                       role=1)
     await rq.subscribe(tg_id=message.from_user.id)
-    await message.answer("Вы подписались на рассылку")
+    await message.answer("Вы подписались на рассылку", disable_notification=True)
 
 
 @router.message(Command("unsubscribe"))
@@ -144,17 +149,17 @@ async def cmd_unsubscribe(message: Message):
                       subscribed=0,
                       role=1)
     await rq.unsubscribe(tg_id=message.from_user.id)
-    await message.answer("Вы отписались от рассылки")
+    await message.answer("Вы отписались от рассылки", disable_notification=True)
 
 
 @router.message(Command("clear_log"))
 async def cmd_clear_log(message: Message):
     user = await rq.get_user_by_tg(message.from_user.id)
-    if user.role == 99:  # 99 - администратор
+    if user.role == ADMIN_ROLE:
         with open("logs.log", 'w') as file:
             file.write('')
         logging.info('Очистка логов')
-        await message.answer(f"Логи очищены")
+        await message.answer(f"Логи очищены", disable_notification=True)
     else:
         logging.error('Запрос на очистку логов - не прошла проверка пользователя')
         await message.answer(f"У вас нет доступа для выполнения данной команды")
@@ -164,7 +169,7 @@ async def cmd_clear_log(message: Message):
 async def cmd_backup(message: Message):
     logging.info('Запрос backup_db')
     user = await rq.get_user_by_tg(message.from_user.id)
-    if user.role == 99:
+    if user.role == ADMIN_ROLE:
         logging.info('Запрос backup_db - пользователь принят')
 
         # не отправляет файл, пишет слишком большой
@@ -172,6 +177,7 @@ async def cmd_backup(message: Message):
         await message.reply_document(document=document)
     else:
         logging.error('Запрос backup_db - не прошла проверка пользователя')
+        await message.answer(f"У вас нет доступа для выполнения данной команды")
 
 
 @router.message(Command("help"))
@@ -180,34 +186,33 @@ async def cmd_help(message: Message):
                          f"\n- Искать товары по id"
                          f"\n- Искать товары по коду товара"
                          f"\n- Искать товары по ссылке\n\n"
+                         f"\n- Искать товары по слову в названии\n\n"
                          f"Можно отправить файл с ссылками и в ответ бот пришлет файл с результатами парсинга")
 
 
 @router.message(Command("import"))
 async def cmd_import(message: Message, state: FSMContext):
     user = await rq.get_user_by_tg(message.from_user.id)
-    if user.role == 99:
+    if user.role == ADMIN_ROLE:
         await state.set_state(ImportTT.file)
         await message.answer(f"Жду файл импорта")
     else:
         await message.answer(f"У вас нет доступа для выполнения данной команды")
 
 
-async def update_tt_products(data: Workbook):
-    data = data.active
+async def update_tt_products(wb: Workbook):
+    ws = wb.active
     products_list = list()
     products_dict = dict()
-    maxCheckRow = data.max_row + 1  # поиск ссылок в строках
+    maxCheckRow = ws.max_row + 1  # поиск ссылок в строках
     for row in range(1, maxCheckRow):
-        products_dict['product_tt_id'] = data.cell(row=row + 1, column=1).value
-        products_dict['product_tt_code'] = data.cell(row=row + 1, column=2).value
-        products_dict['name'] = data.cell(row=row + 1, column=3).value
-        products_dict['purchase_price'] = data.cell(row=row + 1, column=4).value
-        products_dict['retail_price'] = data.cell(row=row + 1, column=5).value
-        products_dict['url'] = data.cell(row=row + 1, column=6).value
-        # print(products_dict)
-        # products_list.append([(k, v) for k, v in products_dict.items()])
-        # products_list.append(products_dict)
+        products_dict['product_tt_id'] = ws.cell(row=row + 1, column=1).value
+        products_dict['product_tt_code'] = ws.cell(row=row + 1, column=2).value
+        products_dict['name'] = ws.cell(row=row + 1, column=3).value
+        products_dict['purchase_price'] = ws.cell(row=row + 1, column=4).value
+        products_dict['retail_price'] = ws.cell(row=row + 1, column=5).value
+        products_dict['url'] = ws.cell(row=row + 1, column=6).value
+
         products_list.append([products_dict['product_tt_id'],
                               products_dict['product_tt_code'],
                               products_dict['name'],
@@ -336,54 +341,54 @@ async def find_products(text):
 # ловит любое сообщение, которое не прошло фильтры выше
 @router.message()
 async def get_links(message: Message):
-    products = await find_products(message.text)
-    for product in products:
-        logging.info("[INFO] Поиск товара")
-        print("[INFO] Поиск товара")
-        if product is not None:
-            """await message.answer(text="Найден товар",
-                                 disable_notification=True,
-                                 disable_web_page_preview=True)"""
-            try:
-                data = parsing_one(product.url)
-                await message.answer(text=f"Товар: \nid: {product.product_tt_id}"
-                                          f"\nКод товара: {product.product_tt_code}"
-                                          f"\nНаименование: {product.name}"
-                                          f"\nСсылка: {product.url}"
-                                          f"\nЗакуп: {product.purchase_price}"
-                                          f"\nРозница: {product.retail_price}"
-                                          f"\nДата внесения: {product.update_date}"
-                                          f"\n\nТекущее наименование: {data['name']}"
-                                          f"\n\nТекущая РЦ: {data['price']}",
-                                     disable_notification=True,
-                                     disable_web_page_preview=True)
-            except Exception as err:
-                mes: str = f"Возникла ошибка {err=}, {type(err)=}"
-                await message.answer(text=mes)
-                print(mes)
-                logging.error(mes)
-            links = list(await rq.get_links_by_tt_id(product.product_tt_id))
-            if len(links) != 0:
-                await message.answer(text=f"Найдено {len(links)}",
-                                     disable_notification=True)
-                for link in links:
-                    try:
-                        data = await parsing_one(link.url)
-                        await message.answer(text=f"Ссылка: {link.url}\n\n"
-                                                  f"Наименование: {data['name']}\n\n"
-                                                  f"Цена: {data['price']}\n",
-                                             disable_notification=True,
-                                             disable_web_page_preview=True)
-                    except Exception as err:
-                        mes: str = f"Возникла ошибка {err=}, {type(err)=}"
-                        await message.answer(text=mes)
-                        print(mes)
-                        logging.error(mes)
-            else:
-                await message.answer(text=f"Ссылок не найдено",
-                                     disable_notification=True)
+    if Settings.Enable_Product_Search:
+        products = await find_products(message.text)
+        for product in products:
+            logging.info("[INFO] Поиск товара")
+            print("[INFO] Поиск товара")
+            if product is not None:
+                try:
+                    data = parsing_one(product.url)
+                    await message.answer(text=f"Товар: \nid: {product.product_tt_id}"
+                                              f"\nКод товара: {product.product_tt_code}"
+                                              f"\nНаименование: {product.name}"
+                                              f"\nСсылка: {product.url}"
+                                              f"\nЗакуп: {product.purchase_price}"
+                                              f"\nРозница: {product.retail_price}"
+                                              f"\nДата внесения: {product.update_date}"
+                                              f"\n\nТекущее наименование: {data['name']}"
+                                              f"\n\nТекущая РЦ: {data['price']}",
+                                         disable_notification=True,
+                                         disable_web_page_preview=True)
+                except Exception as err:
+                    mes: str = f"Возникла ошибка {err=}, {type(err)=}"
+                    await message.answer(text=mes)
+                    print(mes)
+                    logging.error(mes)
+                links = list(await rq.get_links_by_tt_id(product.product_tt_id))
+                if len(links) != 0:
+                    await message.answer(text=f"Найдено {len(links)}",
+                                         disable_notification=True)
+                    for link in links:
+                        try:
+                            data = await parsing_one(link.url)
+                            await message.answer(text=f"Ссылка: {link.url}\n\n"
+                                                      f"Наименование: {data['name']}\n\n"
+                                                      f"Цена: {data['price']}\n",
+                                                 disable_notification=True,
+                                                 disable_web_page_preview=True)
+                        except Exception as err:
+                            mes: str = f"Возникла ошибка {err=}, {type(err)=}"
+                            await message.answer(text=mes)
+                            print(mes)
+                            logging.error(mes)
+                else:
+                    await message.answer(text=f"Ссылок не найдено",
+                                         disable_notification=True)
 
-        else:
-            await message.answer(text="Товар не найден",
-                                 disable_notification=True,
-                                 disable_web_page_preview=True)
+            else:
+                await message.answer(text="Товар не найден",
+                                     disable_notification=True)
+    else:
+        await message.answer(text="Поиск товаров отключен",
+                             disable_notification=True)

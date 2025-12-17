@@ -22,6 +22,14 @@ class User(Base):
     role: Mapped[int]
 
 
+"""class Settings(Base):
+    __tablename__ = 'settings'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    tg_id = mapped_column(BigInteger)
+    user_tg_id: Mapped[int] = mapped_column(ForeignKey('users.tg_id'))"""
+
+
 class Product(Base):
     __tablename__ = 'products'
 
