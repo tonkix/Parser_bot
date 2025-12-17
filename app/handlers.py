@@ -155,13 +155,42 @@ async def cmd_unsubscribe(message: Message):
 @router.message(Command("clear_log"))
 async def cmd_clear_log(message: Message):
     user = await rq.get_user_by_tg(message.from_user.id)
-    if user.role == ADMIN_ROLE:
+    if user.role.__str__() == ADMIN_ROLE:
         with open("logs.log", 'w') as file:
             file.write('')
         logging.info('Очистка логов')
-        await message.answer(f"Логи очищены", disable_notification=True)
+        await message.answer(f"Логи очищены",
+                             disable_notification=True)
     else:
         logging.error('Запрос на очистку логов - не прошла проверка пользователя')
+        await message.answer(f"У вас нет доступа для выполнения данной команды")
+
+
+# Переключение флага записи в БД
+@router.message(Command("switch_writing_to_db"))
+async def switch_writing_to_db(message: Message):
+    user = await rq.get_user_by_tg(message.from_user.id)
+    if user.role.__str__() == ADMIN_ROLE:
+        Settings.Enable_Writing_to_DataBase = not Settings.Enable_Writing_to_DataBase
+        logging.info(f"Enable_Writing_to_DataBase = {Settings.Enable_Writing_to_DataBase}")
+        await message.answer(f"Enable_Writing_to_DataBase = {Settings.Enable_Writing_to_DataBase}",
+                             disable_notification=True)
+    else:
+        logging.error('Запрос изменение флага записи в БД - не прошла проверка пользователя')
+        await message.answer(f"У вас нет доступа для выполнения данной команды")
+
+
+# Переключение флага создания в Excel отдельного листа с ID и ссылкой
+@router.message(Command("switch_creating_dictionary_worksheet"))
+async def switch_writing_to_db(message: Message):
+    user = await rq.get_user_by_tg(message.from_user.id)
+    if user.role.__str__() == ADMIN_ROLE:
+        Settings.Enable_Creating_Dictionary_Worksheet = not Settings.Enable_Creating_Dictionary_Worksheet
+        logging.info(f"Enable_Writing_to_DataBase = {Settings.Enable_Creating_Dictionary_Worksheet}")
+        await message.answer(f"Enable_Writing_to_DataBase = {Settings.Enable_Creating_Dictionary_Worksheet}",
+                             disable_notification=True)
+    else:
+        logging.error('Запрос изменение флага записи в доп. лист Excel - не прошла проверка пользователя')
         await message.answer(f"У вас нет доступа для выполнения данной команды")
 
 
@@ -169,7 +198,7 @@ async def cmd_clear_log(message: Message):
 async def cmd_backup(message: Message):
     logging.info('Запрос backup_db')
     user = await rq.get_user_by_tg(message.from_user.id)
-    if user.role == ADMIN_ROLE:
+    if user.role.__str__() == ADMIN_ROLE:
         logging.info('Запрос backup_db - пользователь принят')
 
         # не отправляет файл, пишет слишком большой
@@ -185,7 +214,7 @@ async def cmd_help(message: Message):
     await message.answer(f"Бот умеет"
                          f"\n- Искать товары по id"
                          f"\n- Искать товары по коду товара"
-                         f"\n- Искать товары по ссылке\n\n"
+                         f"\n- Искать товары по ссылке"
                          f"\n- Искать товары по слову в названии\n\n"
                          f"Можно отправить файл с ссылками и в ответ бот пришлет файл с результатами парсинга")
 
@@ -193,7 +222,7 @@ async def cmd_help(message: Message):
 @router.message(Command("import"))
 async def cmd_import(message: Message, state: FSMContext):
     user = await rq.get_user_by_tg(message.from_user.id)
-    if user.role == ADMIN_ROLE:
+    if user.role.__str__() == ADMIN_ROLE:
         await state.set_state(ImportTT.file)
         await message.answer(f"Жду файл импорта")
     else:
@@ -208,17 +237,17 @@ async def update_tt_products(wb: Workbook):
     for row in range(1, maxCheckRow):
         products_dict['product_tt_id'] = ws.cell(row=row + 1, column=1).value
         products_dict['product_tt_code'] = ws.cell(row=row + 1, column=2).value
-        products_dict['name'] = ws.cell(row=row + 1, column=3).value
-        products_dict['purchase_price'] = ws.cell(row=row + 1, column=4).value
-        products_dict['retail_price'] = ws.cell(row=row + 1, column=5).value
-        products_dict['url'] = ws.cell(row=row + 1, column=6).value
+        products_dict['name_tt'] = ws.cell(row=row + 1, column=3).value
+        products_dict['purchase_price_tt'] = ws.cell(row=row + 1, column=4).value
+        products_dict['retail_price_tt'] = ws.cell(row=row + 1, column=5).value
+        products_dict['url_tt'] = ws.cell(row=row + 1, column=6).value
 
         products_list.append([products_dict['product_tt_id'],
                               products_dict['product_tt_code'],
-                              products_dict['name'],
-                              products_dict['purchase_price'],
-                              products_dict['retail_price'],
-                              products_dict['url']])
+                              products_dict['name_tt'],
+                              products_dict['purchase_price_tt'],
+                              products_dict['retail_price_tt'],
+                              products_dict['url_tt']])
 
     return products_list
 
@@ -226,6 +255,7 @@ async def update_tt_products(wb: Workbook):
 @router.message(ImportTT.file)
 async def get_import_file(message: Message, state: FSMContext, bot: Bot):
     await message.answer(f"Начал работу с файлом")
+    start = time.perf_counter()
     file_id = message.document.file_id
     input_directory = r'import_data/'
     if not os.path.exists(input_directory):
@@ -240,11 +270,13 @@ async def get_import_file(message: Message, state: FSMContext, bot: Bot):
         # print(product)
         await rq.update_product2(product_tt_id=product[0],
                                  product_tt_code=product[1],
-                                 name=product[2],
-                                 purchase_price=product[3],
-                                 retail_price=product[4],
-                                 url=product[5])
-    await message.answer(f"Завершено")
+                                 name_tt=product[2],
+                                 purchase_price_tt=product[3],
+                                 retail_price_tt=product[4],
+                                 url_tt=product[5])
+
+    print(f"Добавление файлов заняло {time.perf_counter() - start:0.4f} секунд")
+    await message.answer(f"Завершено за {time.perf_counter() - start:0.4f} секунд")
     await state.clear()
 
 

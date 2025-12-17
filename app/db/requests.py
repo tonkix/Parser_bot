@@ -132,7 +132,7 @@ async def get_subscribed_users():
 
 async def add_tt_product2(**kwargs):
     async with async_session() as session:
-        links = list(await session.scalars(select(Link).where(Link.url == kwargs['url'])))
+        links = list(await session.scalars(select(Link).where(Link.url == kwargs['url_tt'])))
         if not links:
             try:
                 session.add(Product(
