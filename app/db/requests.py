@@ -10,7 +10,8 @@ load_dotenv()
 MASTER_PASSWORD = os.getenv("MASTER_PASSWORD")
 
 
-async def set_user(tg_id: int, firstname, lastname, subscribed, role=1):
+async def set_user(tg_id: int, firstname, lastname, subscribed, role=1,
+                   product_search=1, writing_to_db=1, creating_dictionary_worksheet=1):
     async with async_session() as session:
         user = await session.scalar(select(User).where(User.tg_id == tg_id))
 
@@ -19,6 +20,9 @@ async def set_user(tg_id: int, firstname, lastname, subscribed, role=1):
                              firstname=firstname,
                              lastname=lastname,
                              subscribed=subscribed,
+                             product_search=product_search,
+                             writing_to_db=writing_to_db,
+                             creating_dictionary_worksheet=creating_dictionary_worksheet,
                              role=role))
             await session.commit()
 
@@ -45,6 +49,39 @@ async def subscribe(tg_id: int):
                                        .limit(1))
         user = result.scalar()
         user.subscribed = True
+        await session.commit()
+
+
+async def switch_writing_to_db(tg_id: int):
+    async with async_session() as session:
+        result = await session.execute(select(User)
+                                       .order_by(User.id)
+                                       .where(User.tg_id == tg_id)
+                                       .limit(1))
+        user = result.scalar()
+        user.writing_to_db = not user.writing_to_db
+        await session.commit()
+
+
+async def switch_creating_dictionary_worksheet(tg_id: int):
+    async with async_session() as session:
+        result = await session.execute(select(User)
+                                       .order_by(User.id)
+                                       .where(User.tg_id == tg_id)
+                                       .limit(1))
+        user = result.scalar()
+        user.creating_dictionary_worksheet = not user.creating_dictionary_worksheet
+        await session.commit()
+
+
+async def switch_product_search(tg_id: int):
+    async with async_session() as session:
+        result = await session.execute(select(User)
+                                       .order_by(User.id)
+                                       .where(User.tg_id == tg_id)
+                                       .limit(1))
+        user = result.scalar()
+        user.product_search = not user.product_search
         await session.commit()
 
 

@@ -13,12 +13,12 @@ from datetime import datetime
 from openpyxl import Workbook
 
 import app.db.requests as rq
-from app import Settings
 from app.parser_1 import parsing, parsing_one
 
 router = Router()
 load_dotenv()
 ADMIN_ROLE = os.getenv("ADMIN_ROLE")
+
 
 class ImportTT(StatesGroup):
     file = State()
@@ -68,7 +68,7 @@ async def find_elem_by_url(url, parsing_result):
 
 # inputFile - файл для парсинга
 # return - Excel файл с результатами парсинга
-async def Work_With_File(data: Workbook):
+async def Work_With_File(data: Workbook, creating_dictionary_worksheet, writing_to_db):
     default_sheet_name = "Ссылки"
     data = tryDefaultSheetName(wb_data=data, name=default_sheet_name)
     list_url = list()
@@ -89,7 +89,7 @@ async def Work_With_File(data: Workbook):
     uniq_url = list(set(list_url))
     parsing_result = await parsing(uniq_url, ws)
 
-    if Settings.Enable_Creating_Dictionary_Worksheet:
+    if creating_dictionary_worksheet:
         # Добавление ссылки в базу и в отдельный лист Excel
         sheet_name = 'dictionary'
         wb.create_sheet(sheet_name)
@@ -102,7 +102,7 @@ async def Work_With_File(data: Workbook):
                            2: k[1],
                            3: data[1],
                            4: data[2]})
-                if Settings.Enable_Writing_to_DataBase:
+                if writing_to_db:
                     await rq.add_link(product_id=k[0],
                                       url=k[1],
                                       name=data[1],
@@ -121,12 +121,25 @@ async def cmd_start(message: Message):
                       firstname=message.from_user.first_name,
                       lastname=message.from_user.last_name,
                       subscribed=0,
-                      role=1)
+                      role=1,
+                      product_search=1,
+                      writing_to_db=1,
+                      creating_dictionary_worksheet=1)
     await message.answer(f"Бот умеет"
                          f"\n- Искать товары по id"
                          f"\n- Искать товары по коду товара"
-                         f"\n- Искать товары по ссылке\n\n"
+                         f"\n- Искать товары по ссылке"
                          f"\n- Искать товары по слову в названии\n\n"
+                         f"\n/start - Начать"
+                         f"\n/help - Помощь"
+                         f"\n/backup - Выгрузка БД"
+                         f"\n/clear_log - Очистить логи"
+                         f"\n/subscribe - Подписаться на рассылку"
+                         f"\n/unsubscribe - Отписаться от рассылки"
+                         f"\n/product_search - Поиск товаров через сообщение"
+                         f"\n/writing_to_db - запись ссылок в БД"
+                         f"\n/creating_dictionary_worksheet - Переключатель записи в Excel отдельного листа"
+                         f"\n/import - Импорт товаров ТТ\n\n"
                          f"Можно отправить файл с ссылками и в ответ бот пришлет файл с результатами парсинга")
 
 
@@ -136,7 +149,10 @@ async def cmd_subscribe(message: Message):
                       firstname=message.from_user.first_name,
                       lastname=message.from_user.last_name,
                       subscribed=1,
-                      role=1)
+                      role=1,
+                      product_search=1,
+                      writing_to_db=1,
+                      creating_dictionary_worksheet=1)
     await rq.subscribe(tg_id=message.from_user.id)
     await message.answer("Вы подписались на рассылку", disable_notification=True)
 
@@ -147,7 +163,10 @@ async def cmd_unsubscribe(message: Message):
                       firstname=message.from_user.first_name,
                       lastname=message.from_user.last_name,
                       subscribed=0,
-                      role=1)
+                      role=1,
+                      product_search=1,
+                      writing_to_db=1,
+                      creating_dictionary_worksheet=1)
     await rq.unsubscribe(tg_id=message.from_user.id)
     await message.answer("Вы отписались от рассылки", disable_notification=True)
 
@@ -167,13 +186,29 @@ async def cmd_clear_log(message: Message):
 
 
 # Переключение флага записи в БД
-@router.message(Command("switch_writing_to_db"))
+@router.message(Command("product_search"))
+async def switch_product_search(message: Message):
+    user = await rq.get_user_by_tg(message.from_user.id)
+    if user.role.__str__() == ADMIN_ROLE:
+        await rq.switch_product_search(message.from_user.id)
+        user = await rq.get_user_by_tg(message.from_user.id)
+        logging.info(f"Enable_Writing_to_DataBase = {user.switch_product_search}")
+        await message.answer(f"Enable_Writing_to_DataBase = {user.switch_product_search}",
+                             disable_notification=True)
+    else:
+        logging.error('Запрос изменение флага записи в БД - не прошла проверка пользователя')
+        await message.answer(f"У вас нет доступа для выполнения данной команды")
+
+
+# Переключение флага записи в БД
+@router.message(Command("writing_to_db"))
 async def switch_writing_to_db(message: Message):
     user = await rq.get_user_by_tg(message.from_user.id)
     if user.role.__str__() == ADMIN_ROLE:
-        Settings.Enable_Writing_to_DataBase = not Settings.Enable_Writing_to_DataBase
-        logging.info(f"Enable_Writing_to_DataBase = {Settings.Enable_Writing_to_DataBase}")
-        await message.answer(f"Enable_Writing_to_DataBase = {Settings.Enable_Writing_to_DataBase}",
+        await rq.switch_writing_to_db(message.from_user.id)
+        user = await rq.get_user_by_tg(message.from_user.id)
+        logging.info(f"Enable_Writing_to_DataBase = {user.writing_to_db}")
+        await message.answer(f"Enable_Writing_to_DataBase = {user.writing_to_db}",
                              disable_notification=True)
     else:
         logging.error('Запрос изменение флага записи в БД - не прошла проверка пользователя')
@@ -181,13 +216,14 @@ async def switch_writing_to_db(message: Message):
 
 
 # Переключение флага создания в Excel отдельного листа с ID и ссылкой
-@router.message(Command("switch_creating_dictionary_worksheet"))
-async def switch_writing_to_db(message: Message):
+@router.message(Command("creating_dictionary_worksheet"))
+async def switch_creating_dictionary_worksheet(message: Message):
     user = await rq.get_user_by_tg(message.from_user.id)
     if user.role.__str__() == ADMIN_ROLE:
-        Settings.Enable_Creating_Dictionary_Worksheet = not Settings.Enable_Creating_Dictionary_Worksheet
-        logging.info(f"Enable_Writing_to_DataBase = {Settings.Enable_Creating_Dictionary_Worksheet}")
-        await message.answer(f"Enable_Writing_to_DataBase = {Settings.Enable_Creating_Dictionary_Worksheet}",
+        await rq.switch_creating_dictionary_worksheet(message.from_user.id)
+        user = await rq.get_user_by_tg(message.from_user.id)
+        logging.info(f"Creating_Dictionary_Worksheet = {user.creating_dictionary_worksheet}")
+        await message.answer(f"Creating_Dictionary_Worksheet = {user.creating_dictionary_worksheet}",
                              disable_notification=True)
     else:
         logging.error('Запрос изменение флага записи в доп. лист Excel - не прошла проверка пользователя')
@@ -216,6 +252,16 @@ async def cmd_help(message: Message):
                          f"\n- Искать товары по коду товара"
                          f"\n- Искать товары по ссылке"
                          f"\n- Искать товары по слову в названии\n\n"
+                         f"\n/start - Начать"
+                         f"\n/help - Помощь"
+                         f"\n/backup - Выгрузка БД"
+                         f"\n/clear_log - Очистить логи"
+                         f"\n/subscribe - Подписаться на рассылку"
+                         f"\n/unsubscribe - Отписаться от рассылки"
+                         f"\n/product_search - Поиск товаров через сообщение"
+                         f"\n/writing_to_db - запись ссылок в БД"
+                         f"\n/creating_dictionary_worksheet - Переключатель записи в Excel отдельного листа"
+                         f"\n/import - Импорт товаров ТТ\n\n"
                          f"Можно отправить файл с ссылками и в ответ бот пришлет файл с результатами парсинга")
 
 
@@ -310,7 +356,10 @@ async def get_doc(message: Message, bot: Bot):
                       firstname=message.from_user.first_name,
                       lastname=message.from_user.last_name,
                       subscribed=0,
-                      role=1)
+                      role=1,
+                      product_search=1,
+                      writing_to_db=1,
+                      creating_dictionary_worksheet=1)
 
     file_id = message.document.file_id
     input_directory = r'input_data/'
@@ -324,7 +373,10 @@ async def get_doc(message: Message, bot: Bot):
     start = time.perf_counter()
     await message.answer('Файл обрабатывается...')
     try:
-        wb = await Work_With_File(input_file)
+        user = await rq.get_user_by_tg(message.from_user.id)
+        wb = await Work_With_File(input_file,
+                                  creating_dictionary_worksheet=user.creating_dictionary_worksheet,
+                                  writing_to_db=user.writing_to_db)
     except Exception as err:
         await message.answer(f"Во время парсинга возникла непредвиденная ошибка {err}")
         return
@@ -374,7 +426,8 @@ async def find_products(text):
 # ловит любое сообщение, которое не прошло фильтры выше
 @router.message()
 async def get_links(message: Message):
-    if Settings.Enable_Product_Search:
+    user = await rq.get_user_by_tg(message.from_user.id)
+    if user.product_search:
         products = await find_products(message.text)
         for product in products:
             logging.info("[INFO] Поиск товара")
@@ -404,7 +457,7 @@ async def get_links(message: Message):
                                          disable_notification=True)
                     for link in links:
                         try:
-                            data = await parsing_one(link.url)
+                            data = parsing_one(link.url)
                             await message.answer(text=f"Ссылка: {link.url}\n\n"
                                                       f"Наименование: {data['name']}\n\n"
                                                       f"Цена: {data['price']}\n",
