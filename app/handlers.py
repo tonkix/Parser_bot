@@ -248,26 +248,27 @@ async def get_import_file(message: Message, state: FSMContext, bot: Bot):
     await state.clear()
 
 
-async def add_tt_products(data: Workbook):
+async def add_tt_products(wb: Workbook):
     default_sheet_name = "товары"
-    data = tryDefaultSheetName(wb_data=data, name=default_sheet_name)
+    ws = tryDefaultSheetName(wb_data=wb, name=default_sheet_name)
 
     product_list = list()
-    maxCheckRow = data.max_row + 1  # поиск ссылок в строках
+    maxCheckRow = ws.max_row + 1  # поиск ссылок в строках
     for row in range(0, maxCheckRow):
-        product_tt_id = data.cell(row=row + 1, column=1).value
-        name = ''
-        url = data.cell(row=row + 1, column=2).value
-        purchase_price = data.cell(row=row + 1, column=3).value
-        retail_price = data.cell(row=row + 1, column=4).value
-        product_tt_code = data.cell(row=row + 1, column=6).value
-        product_list.append([product_tt_id, product_tt_code, name, url, purchase_price, retail_price])
+        product_tt_id = ws.cell(row=row + 1, column=1).value
+        product_tt_code = ws.cell(row=row + 1, column=2).value
+        name_tt = ws.cell(row=row + 1, column=3).value
+        url_tt = ws.cell(row=row + 1, column=4).value
+        purchase_price_tt = ws.cell(row=row + 1, column=5).value
+        retail_price_tt = ws.cell(row=row + 1, column=6).value
+
+        product_list.append([product_tt_id, product_tt_code, name_tt, url_tt, purchase_price_tt, retail_price_tt])
         await rq.add_tt_product2(product_tt_id=product_tt_id,
                                  product_tt_code=product_tt_code,
-                                 name=name,
-                                 url=url,
-                                 purchase_price=purchase_price,
-                                 retail_price=retail_price)
+                                 name_tt=name_tt,
+                                 url_tt=url_tt,
+                                 purchase_price_tt=purchase_price_tt,
+                                 retail_price_tt=retail_price_tt)
 
 
 # ловит файл и делает парсинг по ссылкам в файле
@@ -293,9 +294,9 @@ async def get_doc(message: Message, bot: Bot):
     try:
         wb = await Work_With_File(input_file)
     except Exception as err:
-        await message.answer(f"В методе Work_With_File возникла непредвиденная ошибка {err}")
+        await message.answer(f"Во время парсинга возникла непредвиденная ошибка {err}")
         return
-    print(f"Выполнение заняло {time.perf_counter() - start:0.4f} секунд")
+    # print(f"Выполнение заняло {time.perf_counter() - start:0.4f} секунд")
     output_directory = r'output_data/'
     if not os.path.exists(output_directory):
         os.mkdir(output_directory)

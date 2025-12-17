@@ -135,17 +135,16 @@ async def add_tt_product2(**kwargs):
         links = list(await session.scalars(select(Link).where(Link.url == kwargs['url'])))
         if not links:
             try:
-                # TODO задать параметры по умолчанию, чтобы добавлять неполный товар
                 session.add(Product(
                     product_tt_id=kwargs['product_tt_id'],
                     product_tt_code=kwargs['product_tt_code'],
-                    name=kwargs['name'],
-                    url=kwargs['url'],
-                    purchase_price=kwargs['purchase_price'],
-                    retail_price=kwargs['retail_price'],
+                    name=kwargs['name_tt'] if kwargs['name_tt'] is not None else "",
+                    url=kwargs['url_tt'] if kwargs['url_tt'] is not None else "",
+                    purchase_price=kwargs['purchase_price_tt'] if kwargs['purchase_price_tt'] is not None else 0,
+                    retail_price=kwargs['retail_price_tt'] if kwargs['retail_price_tt'] is not None else 0,
                     update_date=datetime.now()))
-                logging.info(f"Добавлена запись в 'products' - {kwargs['product_tt_id']} --- {kwargs['url']} ---"
-                             f"Закуп {kwargs['purchase_price']} / Розница {kwargs['retail_price']}")
+                logging.info(f"Добавлена запись в 'products' - {kwargs['product_tt_id']} --- {kwargs['url_tt']} ---"
+                             f"Закуп {kwargs['purchase_price_tt']} / Розница {kwargs['retail_price_tt']}")
                 await session.commit()
             except Exception as err:
                 logging.error(f"Unexpected {err}")
