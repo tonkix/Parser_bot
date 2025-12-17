@@ -10,7 +10,8 @@ load_dotenv()
 MASTER_PASSWORD = os.getenv("MASTER_PASSWORD")
 
 
-async def set_user(tg_id: int, firstname, lastname, subscribed, role=1):
+async def set_user(tg_id: int, firstname, lastname, subscribed, role=1,
+                   product_search=1, writing_to_db=1, creating_dictionary_worksheet=1):
     async with async_session() as session:
         user = await session.scalar(select(User).where(User.tg_id == tg_id))
 
@@ -19,6 +20,9 @@ async def set_user(tg_id: int, firstname, lastname, subscribed, role=1):
                              firstname=firstname,
                              lastname=lastname,
                              subscribed=subscribed,
+                             product_search=product_search,
+                             writing_to_db=writing_to_db,
+                             creating_dictionary_worksheet=creating_dictionary_worksheet,
                              role=role))
             await session.commit()
 
@@ -45,6 +49,39 @@ async def subscribe(tg_id: int):
                                        .limit(1))
         user = result.scalar()
         user.subscribed = True
+        await session.commit()
+
+
+async def switch_writing_to_db(tg_id: int):
+    async with async_session() as session:
+        result = await session.execute(select(User)
+                                       .order_by(User.id)
+                                       .where(User.tg_id == tg_id)
+                                       .limit(1))
+        user = result.scalar()
+        user.writing_to_db = not user.writing_to_db
+        await session.commit()
+
+
+async def switch_creating_dictionary_worksheet(tg_id: int):
+    async with async_session() as session:
+        result = await session.execute(select(User)
+                                       .order_by(User.id)
+                                       .where(User.tg_id == tg_id)
+                                       .limit(1))
+        user = result.scalar()
+        user.creating_dictionary_worksheet = not user.creating_dictionary_worksheet
+        await session.commit()
+
+
+async def switch_product_search(tg_id: int):
+    async with async_session() as session:
+        result = await session.execute(select(User)
+                                       .order_by(User.id)
+                                       .where(User.tg_id == tg_id)
+                                       .limit(1))
+        user = result.scalar()
+        user.product_search = not user.product_search
         await session.commit()
 
 
@@ -78,14 +115,14 @@ async def add_link(url, price, name, product_id):
 async def get_product_by_tt_id(product_tt_id: int):
     async with async_session() as session:
         products = await session.scalars(select(Product).where(Product.product_tt_id == product_tt_id))
-        print('[INFO] ищу по ID')
+        # print('[INFO] ищу по ID')
         return products
 
 
 async def get_product_by_tt_code(product_tt_code: int):
     async with async_session() as session:
         products = await session.scalars(select(Product).where(Product.product_tt_code == product_tt_code))
-        print('[INFO] ищу по Code')
+        # print('[INFO] ищу по Code')
         return products
 
 
@@ -96,23 +133,22 @@ async def get_products_by_link(url):
         for link in links:
             product = await get_product_by_tt_id(link.product_id)
             products_tt.append(product)
-        print('[INFO] ищу по URL')
+        # print('[INFO] ищу по URL')
         return products_tt
 
 
-async def get_products_by_name(name):
-    """async with async_session() as session:
+# Поиск по полному совпадению имени
+async def get_products_by_name(name: str):
+    async with async_session() as session:
         name = name.lower().split(' ')
-        print(name)
-        out_product = list()
-        products_tt = await session.scalars(select(Product))
+        # print(name)
+        out_products = list()
         for word in name:
-            products = products_tt.
-            # products = products_tt.all().scalars(select(Product).where(Product.name.contains(word)))
-        for p in products:
-            print(p.name)
-        return products_tt"""
-    print('[INFO] ищу по NAME')
+            products_tt = await session.scalars(select(Product).where(Product.name.contains(word)))
+            for p in products_tt:
+                out_products.append(p)
+        # print('[INFO] ищу по NAME')
+        return out_products
 
 
 async def get_links_by_tt_id(product_tt_id):
@@ -133,20 +169,19 @@ async def get_subscribed_users():
 
 async def add_tt_product2(**kwargs):
     async with async_session() as session:
-        links = list(await session.scalars(select(Link).where(Link.url == kwargs['url'])))
+        links = list(await session.scalars(select(Link).where(Link.url == kwargs['url_tt'])))
         if not links:
             try:
-                # TODO задать параметры по умолчанию, чтобы добавлять неполный товар
                 session.add(Product(
                     product_tt_id=kwargs['product_tt_id'],
                     product_tt_code=kwargs['product_tt_code'],
-                    name=kwargs['name'],
-                    url=kwargs['url'],
-                    purchase_price=kwargs['purchase_price'],
-                    retail_price=kwargs['retail_price'],
+                    name=kwargs['name_tt'] if kwargs['name_tt'] is not None else "",
+                    url=kwargs['url_tt'] if kwargs['url_tt'] is not None else "",
+                    purchase_price=kwargs['purchase_price_tt'] if kwargs['purchase_price_tt'] is not None else 0,
+                    retail_price=kwargs['retail_price_tt'] if kwargs['retail_price_tt'] is not None else 0,
                     update_date=datetime.now()))
-                logging.info(f"Добавлена запись в 'products' - {kwargs['product_tt_id']} --- {kwargs['url']} ---"
-                             f"Закуп {kwargs['purchase_price']} / Розница {kwargs['retail_price']}")
+                logging.info(f"Добавлена запись в 'products' - {kwargs['product_tt_id']} --- {kwargs['url_tt']} ---"
+                             f"Закуп {kwargs['purchase_price_tt']} / Розница {kwargs['retail_price_tt']}")
                 await session.commit()
             except Exception as err:
                 logging.error(f"Unexpected {err}")
