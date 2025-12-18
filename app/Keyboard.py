@@ -10,8 +10,7 @@ ADMIN_ROLE = os.getenv("ADMIN_ROLE")
 
 async def main_kb(user_tg_id: int):
     kb_list = [
-        [KeyboardButton(text="1"), KeyboardButton(text="2")],
-        [KeyboardButton(text="3"), KeyboardButton(text="4")]
+        [KeyboardButton(text="1"), KeyboardButton(text="2")]
     ]
     user = await rq.get_user_by_tg(user_tg_id)
     if user.role.__str__() == ADMIN_ROLE:
