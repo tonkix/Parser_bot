@@ -230,11 +230,11 @@ async def switch_product_search(message: Message):
     if user.role.__str__() == ADMIN_ROLE:
         await rq.switch_product_search(message.from_user.id)
         user = await rq.get_user_by_tg(message.from_user.id)
-        logging.info(f"Enable_Writing_to_DataBase = {user.switch_product_search}")
-        await message.answer(f"Enable_Writing_to_DataBase = {user.switch_product_search}",
+        logging.info(f"Enable_Product_Search = {user.product_search}")
+        await message.answer(f"Enable_Product_Search = {user.product_search}",
                              disable_notification=True)
     else:
-        logging.error('Запрос изменение флага записи в БД - не прошла проверка пользователя')
+        logging.error('Запрос изменение флага поиска товара - не прошла проверка пользователя')
         await message.answer(f"У вас нет доступа для выполнения данной команды")
 
 
