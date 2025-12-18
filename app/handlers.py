@@ -117,23 +117,23 @@ async def Work_With_File(data: Workbook, creating_dictionary_worksheet, writing_
 
 async def get_commands():
     from _cffi_backend import string
-    return string(f"Бот умеет"
-                  f"\n- Искать товары по id"
-                  f"\n- Искать товары по коду товара"
-                  f"\n- Искать товары по ссылке"
-                  f"\n- Искать товары по слову в названии\n\n"
-                  f"\n/start - Начать"
-                  f"\n/help - Помощь"
-                  f"\n/user_settings_info - Показать текущие настройки"
-                  f"\n/backup - Выгрузка БД"
-                  f"\n/clear_log - Очистить логи"
-                  f"\n/subscribe - Подписаться на рассылку"
-                  f"\n/unsubscribe - Отписаться от рассылки"
-                  f"\n/product_search - Поиск товаров через сообщение"
-                  f"\n/writing_to_db - запись ссылок в БД"
-                  f"\n/creating_dictionary_worksheet - Переключатель записи в Excel отдельного листа"
-                  f"\n/import - Импорт товаров ТТ\n\n"
-                  f"Можно отправить файл с ссылками и в ответ бот пришлет файл с результатами парсинга")
+    return (f"Бот умеет"
+            f"\n- Искать товары по id"
+            f"\n- Искать товары по коду товара"
+            f"\n- Искать товары по ссылке"
+            f"\n- Искать товары по слову в названии\n\n"
+            f"\n/start - Начать"
+            f"\n/help - Помощь"
+            f"\n/user_settings_info - Показать текущие настройки"
+            f"\n/backup - Выгрузка БД"
+            f"\n/clear_log - Очистить логи"
+            f"\n/subscribe - Подписаться на рассылку"
+            f"\n/unsubscribe - Отписаться от рассылки"
+            f"\n/product_search - Поиск товаров через сообщение"
+            f"\n/writing_to_db - запись ссылок в БД"
+            f"\n/creating_dictionary_worksheet - Переключатель записи в Excel отдельного листа"
+            f"\n/import - Импорт товаров ТТ\n\n"
+            f"Можно отправить файл с ссылками и в ответ бот пришлет файл с результатами парсинга")
 
 
 @router.message(Command("start"))
