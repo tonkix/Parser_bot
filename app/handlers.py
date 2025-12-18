@@ -115,6 +115,27 @@ async def Work_With_File(data: Workbook, creating_dictionary_worksheet, writing_
     return wb
 
 
+async def get_commands():
+    from _cffi_backend import string
+    return string(f"Бот умеет"
+                  f"\n- Искать товары по id"
+                  f"\n- Искать товары по коду товара"
+                  f"\n- Искать товары по ссылке"
+                  f"\n- Искать товары по слову в названии\n\n"
+                  f"\n/start - Начать"
+                  f"\n/help - Помощь"
+                  f"\n/user_settings_info - Показать текущие настройки"
+                  f"\n/backup - Выгрузка БД"
+                  f"\n/clear_log - Очистить логи"
+                  f"\n/subscribe - Подписаться на рассылку"
+                  f"\n/unsubscribe - Отписаться от рассылки"
+                  f"\n/product_search - Поиск товаров через сообщение"
+                  f"\n/writing_to_db - запись ссылок в БД"
+                  f"\n/creating_dictionary_worksheet - Переключатель записи в Excel отдельного листа"
+                  f"\n/import - Импорт товаров ТТ\n\n"
+                  f"Можно отправить файл с ссылками и в ответ бот пришлет файл с результатами парсинга")
+
+
 @router.message(Command("start"))
 async def cmd_start(message: Message):
     await rq.set_user(tg_id=message.from_user.id,
@@ -125,22 +146,53 @@ async def cmd_start(message: Message):
                       product_search=1,
                       writing_to_db=1,
                       creating_dictionary_worksheet=1)
-    await message.answer(f"Бот умеет"
-                         f"\n- Искать товары по id"
-                         f"\n- Искать товары по коду товара"
-                         f"\n- Искать товары по ссылке"
-                         f"\n- Искать товары по слову в названии\n\n"
-                         f"\n/start - Начать"
-                         f"\n/help - Помощь"
-                         f"\n/backup - Выгрузка БД"
-                         f"\n/clear_log - Очистить логи"
-                         f"\n/subscribe - Подписаться на рассылку"
-                         f"\n/unsubscribe - Отписаться от рассылки"
-                         f"\n/product_search - Поиск товаров через сообщение"
-                         f"\n/writing_to_db - запись ссылок в БД"
-                         f"\n/creating_dictionary_worksheet - Переключатель записи в Excel отдельного листа"
-                         f"\n/import - Импорт товаров ТТ\n\n"
-                         f"Можно отправить файл с ссылками и в ответ бот пришлет файл с результатами парсинга")
+    await message.answer(await get_commands(), disable_notification=True)
+
+
+@router.message(Command("help"))
+async def cmd_help(message: Message):
+    await message.answer(await get_commands(), disable_notification=True)
+
+
+# Информация о настройках пользователя
+@router.message(Command("user_settings_info"))
+async def get_user_settings(message: Message):
+    user = await rq.get_user_by_tg(message.from_user.id)
+    await message.answer(f"Параметры бота"
+                         f"\n- Уровень прав доступа: {user.role}"
+                         f"\n- Поиск товаров: {user.product_search}"
+                         f"\n- Запись в БД: {user.writing_to_db}"
+                         f"\n- Создание листа в Excel: {user.creating_dictionary_worksheet}",
+                         disable_notification=True)
+
+
+@router.message(Command("backup"))
+async def cmd_backup(message: Message):
+    logging.info('Запрос backup_db')
+    user = await rq.get_user_by_tg(message.from_user.id)
+    if user.role.__str__() == ADMIN_ROLE:
+        logging.info('Запрос backup_db - пользователь принят')
+
+        # не отправляет файл, пишет слишком большой
+        document = FSInputFile(path='db.sqlite3', filename='backup_db.sqlite3')
+        await message.reply_document(document=document)
+    else:
+        logging.error('Запрос backup_db - не прошла проверка пользователя')
+        await message.answer(f"У вас нет доступа для выполнения данной команды")
+
+
+@router.message(Command("clear_log"))
+async def cmd_clear_log(message: Message):
+    user = await rq.get_user_by_tg(message.from_user.id)
+    if user.role.__str__() == ADMIN_ROLE:
+        with open("logs.log", 'w') as file:
+            file.write('')
+        logging.info('Очистка логов')
+        await message.answer(f"Логи очищены",
+                             disable_notification=True)
+    else:
+        logging.error('Запрос на очистку логов - не прошла проверка пользователя')
+        await message.answer(f"У вас нет доступа для выполнения данной команды")
 
 
 @router.message(Command("subscribe"))
@@ -171,21 +223,7 @@ async def cmd_unsubscribe(message: Message):
     await message.answer("Вы отписались от рассылки", disable_notification=True)
 
 
-@router.message(Command("clear_log"))
-async def cmd_clear_log(message: Message):
-    user = await rq.get_user_by_tg(message.from_user.id)
-    if user.role.__str__() == ADMIN_ROLE:
-        with open("logs.log", 'w') as file:
-            file.write('')
-        logging.info('Очистка логов')
-        await message.answer(f"Логи очищены",
-                             disable_notification=True)
-    else:
-        logging.error('Запрос на очистку логов - не прошла проверка пользователя')
-        await message.answer(f"У вас нет доступа для выполнения данной команды")
-
-
-# Переключение флага записи в БД
+# Переключение флага поиска товара
 @router.message(Command("product_search"))
 async def switch_product_search(message: Message):
     user = await rq.get_user_by_tg(message.from_user.id)
@@ -228,41 +266,6 @@ async def switch_creating_dictionary_worksheet(message: Message):
     else:
         logging.error('Запрос изменение флага записи в доп. лист Excel - не прошла проверка пользователя')
         await message.answer(f"У вас нет доступа для выполнения данной команды")
-
-
-@router.message(Command("backup"))
-async def cmd_backup(message: Message):
-    logging.info('Запрос backup_db')
-    user = await rq.get_user_by_tg(message.from_user.id)
-    if user.role.__str__() == ADMIN_ROLE:
-        logging.info('Запрос backup_db - пользователь принят')
-
-        # не отправляет файл, пишет слишком большой
-        document = FSInputFile(path='db.sqlite3', filename='backup_db.sqlite3')
-        await message.reply_document(document=document)
-    else:
-        logging.error('Запрос backup_db - не прошла проверка пользователя')
-        await message.answer(f"У вас нет доступа для выполнения данной команды")
-
-
-@router.message(Command("help"))
-async def cmd_help(message: Message):
-    await message.answer(f"Бот умеет"
-                         f"\n- Искать товары по id"
-                         f"\n- Искать товары по коду товара"
-                         f"\n- Искать товары по ссылке"
-                         f"\n- Искать товары по слову в названии\n\n"
-                         f"\n/start - Начать"
-                         f"\n/help - Помощь"
-                         f"\n/backup - Выгрузка БД"
-                         f"\n/clear_log - Очистить логи"
-                         f"\n/subscribe - Подписаться на рассылку"
-                         f"\n/unsubscribe - Отписаться от рассылки"
-                         f"\n/product_search - Поиск товаров через сообщение"
-                         f"\n/writing_to_db - запись ссылок в БД"
-                         f"\n/creating_dictionary_worksheet - Переключатель записи в Excel отдельного листа"
-                         f"\n/import - Импорт товаров ТТ\n\n"
-                         f"Можно отправить файл с ссылками и в ответ бот пришлет файл с результатами парсинга")
 
 
 @router.message(Command("import"))
