@@ -18,9 +18,7 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 
 
 async def set_commands(bot: Bot):
-    commands = [BotCommand(command='start',
-                           description='Начать'),
-                BotCommand(command='help',
+    commands = [BotCommand(command='help',
                            description='Помощь'),
                 BotCommand(command='user_settings_info',
                            description='Показать текущие настройки'),
